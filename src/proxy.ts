@@ -6,7 +6,10 @@ import { authConfig } from '@/lib/auth/config';
  * La verificación de PERMISOS nunca ocurre aquí — vive en el servidor,
  * dentro de cada Server Action y ruta de API (`requirePermission`).
  */
-export const { auth: middleware } = NextAuth(authConfig);
+const { auth } = NextAuth(authConfig);
+
+// Exportar por defecto soluciona el problema de reconocimiento de Turbopack
+export default auth;
 
 export const config = {
   matcher: ['/((?!api/auth|_next/static|_next/image|favicon.ico|manifest.webmanifest|.*\\.png$).*)'],
