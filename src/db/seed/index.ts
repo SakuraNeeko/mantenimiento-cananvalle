@@ -48,9 +48,9 @@ const ADMIN_EMAIL = (process.env.SEED_ADMIN_EMAIL ?? 'admin@miempresa.com').toLo
 const ADMIN_PASSWORD = process.env.SEED_ADMIN_PASSWORD;
 
 const SEDES_INICIALES = [
-  { codigo: 'S01', nombre: 'Planta principal' },
-  { codigo: 'S02', nombre: 'Planta 2' },
-  { codigo: 'S03', nombre: 'Oficina administrativa' },
+  { codigo: 'S01', nombre: 'Finca 1 - Cananvalle' },
+  { codigo: 'S02', nombre: 'Finca 2 - Santa Maria' },
+  { codigo: 'S03', nombre: 'Finca 3 - San Camilo' },
 ];
 
 const MODULOS_OPCIONALES = [

@@ -1,24 +1,30 @@
 import type { Metadata } from 'next';
-import { and, eq, gte, sql } from 'drizzle-orm';
+import Link from 'next/link';
+import { and, eq, gte, inArray, sql } from 'drizzle-orm';
 import { Activity, ShieldCheck, Users2, Wrench } from 'lucide-react';
 import { db } from '@/db';
-import { auditLog, users } from '@/db/schema';
-import { requirePermission } from '@/lib/permissions';
+import { auditLog, users, workOrders } from '@/db/schema';
+import { hasPermission, requirePermission } from '@/lib/permissions';
+import { Button } from '@/components/ui/button';
 import { getCurrentTenant } from '@/lib/tenant';
 import { PageHeader } from '@/components/layout/page-header';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { fmtRelative } from '@/lib/datetime';
+import { calcularDisponibilidad, calcularMTBF, calcularMTTR } from '@/lib/kpis/calculos';
 
 export const metadata: Metadata = { title: 'Dashboard' };
+
+const ESTADOS_ABIERTOS_OT = ['BORRADOR', 'PLANIFICADA', 'ASIGNADA', 'EN_EJECUCION', 'PENDIENTE', 'EJECUTADA', 'LIQUIDADA'] as const;
 
 export default async function DashboardPage() {
   const session = await requirePermission('reportes.dashboard.ver');
   const tenant = await getCurrentTenant();
 
   const desde = new Date(Date.now() - 7 * 24 * 3600 * 1000);
+  const inicioMes = new Date(Date.UTC(new Date().getUTCFullYear(), new Date().getUTCMonth(), 1));
 
-  const [usuariosActivos, eventos, criticos] = await Promise.all([
+  const [usuariosActivos, eventos, criticos, ordenesAbiertas, mtbf, mttr] = await Promise.all([
     db
       .select({ n: sql<number>`count(*)::int` })
       .from(users)
@@ -41,13 +47,21 @@ export default async function DashboardPage() {
       .select({ n: sql<number>`count(*)::int` })
       .from(auditLog)
       .where(and(eq(auditLog.tenantId, tenant.id), eq(auditLog.nivel, 'CRITICO'), gte(auditLog.createdAt, desde))),
+    db
+      .select({ n: sql<number>`count(*)::int` })
+      .from(workOrders)
+      .where(and(eq(workOrders.tenantId, tenant.id), inArray(workOrders.estado, [...ESTADOS_ABIERTOS_OT]))),
+    calcularMTBF(tenant.id, { desde: inicioMes, hasta: new Date() }),
+    calcularMTTR(tenant.id, { desde: inicioMes, hasta: new Date() }),
   ]);
+
+  const disponibilidad = calcularDisponibilidad(mtbf.mtbfHoras, mttr.mttrHoras);
 
   const tarjetas = [
     { titulo: 'Usuarios activos', valor: usuariosActivos[0]?.n ?? 0, icono: Users2 },
     { titulo: 'Eventos críticos (7 d)', valor: criticos[0]?.n ?? 0, icono: ShieldCheck },
-    { titulo: 'Órdenes abiertas', valor: '—', icono: Wrench, nota: 'Disponible en la Fase 6' },
-    { titulo: 'Disponibilidad', valor: '—', icono: Activity, nota: 'Disponible en la Fase 9' },
+    { titulo: 'Órdenes abiertas', valor: ordenesAbiertas[0]?.n ?? 0, icono: Wrench },
+    { titulo: 'Disponibilidad (mes)', valor: disponibilidad !== null ? `${disponibilidad.toFixed(1)}%` : '—', icono: Activity, nota: disponibilidad === null ? 'Sin paros registrados este mes' : undefined },
   ];
 
   return (
@@ -55,6 +69,16 @@ export default async function DashboardPage() {
       <PageHeader
         titulo={`Hola, ${session.user.nombre.split(' ')[0]}`}
         descripcion={`${tenant.razonSocial} · ${session.user.roles.join(', ')}`}
+        acciones={
+          hasPermission(session, 'reportes.operativos.ver') ? (
+            <Button variant="outline" size="sm" asChild>
+              <Link href="/reportes">
+                <Activity aria-hidden />
+                Ver reportes completos
+              </Link>
+            </Button>
+          ) : null
+        }
       />
 
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">

@@ -29,6 +29,48 @@
       "when": 1785328598610,
       "tag": "0003_fase4_almacen_kardex",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1785334353112,
+      "tag": "0004_fase5_solicitudes",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1785337136972,
+      "tag": "0005_fase6_ordenes",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1785346352617,
+      "tag": "0006_fase7_planes",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1785348376938,
+      "tag": "0007_fase8_paros",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1785349529505,
+      "tag": "0008_fase9_historia",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1785350544186,
+      "tag": "0009_fase10_combustibles_tecnovigilancia",
+      "breakpoints": true
     }
   ]
 }

@@ -106,3 +106,76 @@ export const kardexMovementEstadoEnum = pgEnum('kardex_movement_estado', ['BORRA
 
 /** Estado de una toma de inventario físico. */
 export const physicalInventoryEstadoEnum = pgEnum('physical_inventory_estado', ['BORRADOR', 'CONFIRMADO']);
+
+/* -------------------------------------------------------------------------- */
+/* FASE 6 — ÓRDENES DE TRABAJO                                                */
+/* -------------------------------------------------------------------------- */
+
+/** De dónde nació la OT. PLAN (Fase 7) y PARO (Fase 8) quedan declarados para cuando existan esos módulos. */
+export const woOrigenEnum = pgEnum('wo_origen', ['MANUAL', 'PLAN', 'SS', 'PARO']);
+
+/** Tipo de respuesta esperada en un ítem del checklist. */
+export const woTaskTipoRespuestaEnum = pgEnum('wo_task_tipo_respuesta', ['OK_NO_OK', 'NUMERICO', 'TEXTO', 'FOTO', 'FIRMA']);
+
+/* -------------------------------------------------------------------------- */
+/* FASE 7 — PLANES Y GENERACIÓN AUTOMÁTICA                                    */
+/* -------------------------------------------------------------------------- */
+
+/** A qué activos aplica el plan: uno solo, o un grupo definido por filtros. */
+export const planAlcanceEnum = pgEnum('plan_alcance', ['ACTIVO_UNICO', 'GRUPO']);
+
+/**
+ * Tipo de disparador. CALENDARIO y CONTADOR se evalúan automáticamente en el
+ * cron (§7.1 del prompt maestro); CONDICION y EVENTO quedan declarados en el
+ * modelo pero su evaluación automática se difiere (ver deuda técnica de la
+ * Fase 7): requieren, respectivamente, un feed de lecturas de condición/IoT
+ * y el módulo de Paros (Fase 8) para disparar sobre el cierre de una OT.
+ */
+export const planTriggerTipoEnum = pgEnum('plan_trigger_tipo', ['CALENDARIO', 'CONTADOR', 'CONDICION', 'EVENTO']);
+
+/** Unidad del intervalo de un disparador de calendario. */
+export const planIntervaloUnidadEnum = pgEnum('plan_intervalo_unidad', ['DIAS', 'SEMANAS', 'MESES', 'ANIOS']);
+
+/** Fijo: reprograma desde la fecha teórica. Flotante: desde la fecha real de ejecución. */
+export const planReprogramacionModoEnum = pgEnum('plan_reprogramacion_modo', ['FIJO', 'FLOTANTE']);
+
+/** Tipo de recurso previsto de un plan: mano de obra u material. */
+export const planResourceTipoEnum = pgEnum('plan_resource_tipo', ['MANO_OBRA', 'MATERIAL']);
+
+/** Resultado de cada evaluación de generación, para la trazabilidad de `plan_generation_log`. */
+export const planGenerationResultadoEnum = pgEnum('plan_generation_resultado', [
+  'GENERADA',
+  'OMITIDA_DUPLICADO',
+  'OMITIDA_SIN_PROYECCION',
+  'OMITIDA_INACTIVO',
+  'ERROR',
+]);
+
+/* -------------------------------------------------------------------------- */
+/* FASE 8 — PAROS / AVERÍAS                                                   */
+/* -------------------------------------------------------------------------- */
+
+/** Programado (mantenimiento planeado que detiene el equipo) o no programado (falla). Alimenta MTBF/MTTR (Fase 9). */
+export const downtimeTipoEnum = pgEnum('downtime_tipo', ['PROGRAMADO', 'NO_PROGRAMADO']);
+
+/** Un paro es simple: está abierto (en curso) o ya se cerró con su fecha de fin. */
+export const downtimeEstadoEnum = pgEnum('downtime_estado', ['ABIERTO', 'CERRADO']);
+
+/* -------------------------------------------------------------------------- */
+/* FASE 9 — HISTORIA Y KPIS                                                   */
+/* -------------------------------------------------------------------------- */
+
+/** Granularidad del balance periódico de gestión. */
+export const periodoTipoEnum = pgEnum('periodo_tipo', ['MES', 'TRIMESTRE', 'ANIO']);
+
+/* -------------------------------------------------------------------------- */
+/* FASE 10 — COMBUSTIBLES Y TECNOVIGILANCIA (módulos opcionales)              */
+/* -------------------------------------------------------------------------- */
+
+/** Tipo de registro de Tecnovigilancia (§4.11): evento propio, o alerta que llega del fabricante. */
+export const adverseEventTipoEnum = pgEnum('adverse_event_tipo', ['EVENTO_ADVERSO', 'INCIDENTE', 'ALERTA_FABRICANTE']);
+
+/** Severidad regulatoria estándar de tecnovigilancia. */
+export const adverseEventSeveridadEnum = pgEnum('adverse_event_severidad', ['LEVE', 'MODERADA', 'GRAVE', 'CRITICA']);
+
+export const adverseEventEstadoEnum = pgEnum('adverse_event_estado', ['ABIERTO', 'EN_GESTION', 'CERRADO']);

@@ -3,11 +3,51 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { PanelLeftClose, PanelLeftOpen } from 'lucide-react';
+import {
+  Activity,
+  BarChart3,
+  Boxes,
+  CalendarClock,
+  ClipboardCheck,
+  ClipboardList,
+  Cog,
+  Fuel,
+  Gauge,
+  History,
+  Layers,
+  LifeBuoy,
+  MessageSquareWarning,
+  PanelLeftClose,
+  PanelLeftOpen,
+  ShieldAlert,
+  Wrench,
+  Zap,
+  type LucideIcon,
+} from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import type { NavGroup } from './nav-config';
+import type { IconName, NavGroup } from './nav-config';
+
+/** Resuelve el nombre de ícono (string, ver nav-config.ts) al componente real — solo existe en el cliente. */
+const ICONS: Record<IconName, LucideIcon> = {
+  Gauge,
+  Wrench,
+  MessageSquareWarning,
+  ShieldAlert,
+  CalendarClock,
+  Activity,
+  Boxes,
+  Layers,
+  ClipboardCheck,
+  LifeBuoy,
+  History,
+  BarChart3,
+  Fuel,
+  ClipboardList,
+  Zap,
+  Cog,
+};
 
 export function Sidebar({ grupos, empresa }: { grupos: NavGroup[]; empresa: string }) {
   const pathname = usePathname();
@@ -45,7 +85,7 @@ export function Sidebar({ grupos, empresa }: { grupos: NavGroup[]; empresa: stri
               {grupo.items.map((item) => {
                 const activo = pathname === item.href || pathname.startsWith(`${item.href}/`);
                 const proximo = item.fase > 1;
-                const Icon = item.icon;
+                const Icon = ICONS[item.icon];
                 return (
                   <li key={item.href}>
                     <Link

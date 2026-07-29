@@ -2,7 +2,7 @@
 
 Aplicación web de mantenimiento industrial: activos, planes preventivos, órdenes de trabajo, kárdex e indicadores.
 
-**Fase actual: 4 — Almacén y Kárdex.** Materiales con existencias por almacén y trazabilidad por lote, movimientos transaccionales con costo promedio ponderado, consumo FEFO, e inventario físico con ajustes automáticos. Detalle en `ENTREGA-FASE-4.md` (`ENTREGA-FASE-3.md`, `ENTREGA-FASE-2.md` y `ENTREGA-FASE-1B.md` para las entregas anteriores).
+**Fase actual: 10 — Combustibles y Tecnovigilancia.** Los dos primeros módulos opcionales, activables por empresa desde `/administracion/modulos` (`tenant_modules`, sembrada desde la Fase 1). Combustibles registra cada abastecimiento y calcula rendimiento (km/gal, h/gal) y consumos anómalos comparando cargas consecutivas del mismo activo. Tecnovigilancia registra eventos adversos, incidentes y alertas de fabricante de equipos biomédicos, con reporte a la autoridad sanitaria. Detalle en `ENTREGA-FASE-10.md` (`ENTREGA-FASE-9.md` y anteriores para las entregas previas — ver el índice completo al final de este documento).
 
 ---
 
@@ -89,6 +89,9 @@ src/
       infraestructura/[catalogo]      pantalla genérica de catálogos
       activos/[id]/{caracteristicas,medidores,documentos,traslados,historial}
       almacen/{materiales,kardex,inventario}
+      solicitudes/[id]
+    (portal)/                       portal ligero del solicitante, sin sidebar
+      mis-solicitudes, nueva-solicitud, evaluar/[id]
     api/auth/[...nextauth]
   db/
     schema/                  un archivo por dominio
@@ -148,13 +151,13 @@ src/
 | 1.b Cierre de deuda técnica | ✅ |
 | 2. Infraestructura (31 catálogos) | ✅ |
 | 3. Activos | ✅ |
-| 4. Almacén y kárdex (con lotes) | ✅ Esta entrega |
-| 5. Solicitudes + portal | Siguiente |
-| 6. Órdenes de trabajo | Pendiente |
-| 7. Planes y generación automática | Pendiente |
-| 8. Paros / averías | Pendiente |
-| 9. Historia y KPIs | Pendiente |
-| 10. Combustibles y tecnovigilancia | Pendiente |
-| 11. PWA móvil offline | Pendiente |
+| 4. Almacén y kárdex (con lotes) | ✅ |
+| 5. Solicitudes + portal | ✅ |
+| 6. Órdenes de trabajo | ✅ |
+| 7. Planes y generación automática | ✅ |
+| 8. Paros / averías | ✅ |
+| 9. Historia y KPIs | ✅ |
+| 10. Combustibles y tecnovigilancia | ✅ Esta entrega |
+| 11. PWA móvil offline | Siguiente |
 | 12. Automatizador, API e integraciones | Pendiente |
 | 13. Endurecimiento | Pendiente |

@@ -1,7 +1,8 @@
 'use client';
 
 import { useTheme } from 'next-themes';
-import { Bell, LogOut, Moon, Search, Sun, User } from 'lucide-react';
+import Link from 'next/link';
+import { Bell, LogOut, MessageSquareWarning, Moon, Search, Sun, User } from 'lucide-react';
 import { signOut } from 'next-auth/react';
 import { Button } from '@/components/ui/button';
 import {
@@ -106,6 +107,13 @@ export function Topbar({ nombre, email, roles, sedes, sedeActual, notificaciones
               <User aria-hidden />
               Mi perfil
             </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link href="/mis-solicitudes">
+                <MessageSquareWarning aria-hidden />
+                Portal de solicitudes
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
             <DropdownMenuItem onSelect={() => void signOut({ callbackUrl: '/login' })}>
               <LogOut aria-hidden />
               Cerrar sesión
