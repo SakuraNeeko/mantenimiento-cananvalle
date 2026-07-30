@@ -15,7 +15,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { EmptyState } from '@/components/ui/empty-state';
 import { cn } from '@/lib/utils';
-import type { CatalogoDef } from '@/lib/catalogs/registry';
+import type { CatalogoDefPublico } from '@/lib/catalogs/registry';
 import type { RegistroRow } from './catalogo-table';
 import { RegistroForm } from './registro-form';
 import { alternarActivo, eliminarRegistro } from './actions';
@@ -51,7 +51,7 @@ export function ArbolCatalogo({
   puedeEliminar,
 }: {
   slug: string;
-  def: CatalogoDef;
+  def: CatalogoDefPublico;
   filas: RegistroRow[];
   puedeCrear: boolean;
   puedeEditar: boolean;
@@ -226,6 +226,7 @@ export function ArbolCatalogo({
           open={dialogAbierto}
           onOpenChange={setDialogAbierto}
           slug={slug}
+          def={def}
           registroId={editando}
           valoresExtra={!editando && padreNuevo ? { parentId: padreNuevo } : undefined}
           onGuardado={() => router.refresh()}

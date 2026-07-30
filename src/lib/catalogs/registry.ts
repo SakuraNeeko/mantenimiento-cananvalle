@@ -566,3 +566,26 @@ export function getCatalogo(slug: string): CatalogoDef | undefined {
 }
 
 export const CATALOGO_SLUGS = CATALOGOS.map((c) => c.slug);
+
+/**
+ * `CatalogoDef` carga las columnas y tablas crudas de Drizzle (`tabla`,
+ * `columnas`, `campo.referenciaTabla`), que tienen referencias circulares
+ * internas (cada columna apunta de vuelta a su tabla). Pasar un `CatalogoDef`
+ * completo como prop de un Client Component revienta la serialización de
+ * React Server Components con "Maximum call stack size exceeded". Este
+ * subconjunto es lo único que el cliente necesita para pintar el formulario
+ * y la tabla — nunca cruces el límite servidor→cliente con `CatalogoDef` tal cual.
+ */
+export type CampoDefPublico = Omit<CampoDef, 'referenciaTabla'>;
+export type CatalogoDefPublico = Omit<CatalogoDef, 'tabla' | 'columnas' | 'campos'> & { campos: CampoDefPublico[] };
+
+export function catalogoPublico(def: CatalogoDef): CatalogoDefPublico {
+  return {
+    slug: def.slug,
+    titulo: def.titulo,
+    tituloSingular: def.tituloSingular,
+    descripcion: def.descripcion,
+    jerarquico: def.jerarquico,
+    campos: def.campos.map(({ referenciaTabla: _referenciaTabla, ...resto }) => resto),
+  };
+}

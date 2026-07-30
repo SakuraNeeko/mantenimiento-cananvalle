@@ -18,14 +18,14 @@ import { DataTable } from '@/components/data-table';
 import type { ColumnFilter, ColumnMeta, SortRule, TableResult } from '@/components/data-table/types';
 import { fmtDate } from '@/lib/datetime';
 import { formatNumber } from '@/lib/utils';
-import type { CampoDef, CatalogoDef } from '@/lib/catalogs/registry';
+import type { CampoDefPublico, CatalogoDefPublico } from '@/lib/catalogs/registry';
 import { RegistroForm } from './registro-form';
 import { ImportExportBar } from './import-export';
 import { alternarActivo, eliminarRegistro } from './actions';
 
 export type RegistroRow = Record<string, unknown> & { id: string };
 
-function celda(campo: CampoDef, valor: unknown, opciones: Record<string, { value: string; label: string }[]>): React.ReactNode {
+function celda(campo: CampoDefPublico, valor: unknown, opciones: Record<string, { value: string; label: string }[]>): React.ReactNode {
   if (valor === null || valor === undefined || valor === '') return <span className="text-muted-foreground">—</span>;
 
   switch (campo.tipo) {
@@ -46,7 +46,7 @@ function celda(campo: CampoDef, valor: unknown, opciones: Record<string, { value
 }
 
 function buildColumnas(
-  def: CatalogoDef,
+  def: CatalogoDefPublico,
   opciones: Record<string, { value: string; label: string }[]>,
 ): ColumnDef<RegistroRow, unknown>[] {
   return def.campos.map((campo) => ({
@@ -78,7 +78,7 @@ export function CatalogoTable({
   puedeImportar,
 }: {
   slug: string;
-  def: CatalogoDef;
+  def: CatalogoDefPublico;
   data: TableResult<RegistroRow>;
   sort: SortRule[];
   filters: ColumnFilter[];
@@ -216,6 +216,7 @@ export function CatalogoTable({
           open={dialogAbierto}
           onOpenChange={setDialogAbierto}
           slug={slug}
+          def={def}
           registroId={editando}
           onGuardado={() => router.refresh()}
         />

@@ -11,7 +11,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
 import type { ColumnFilter } from '@/components/data-table/types';
-import type { CatalogoDef } from '@/lib/catalogs/registry';
+import type { CatalogoDefPublico } from '@/lib/catalogs/registry';
 import { mapearFilaExcel } from '@/lib/catalogs/excel-mapping';
 import { exportarFilas, importarFilas, type ResultadoImportacion } from './actions';
 
@@ -26,7 +26,7 @@ export function ImportExportBar({
   puedeImportar,
 }: {
   slug: string;
-  def: CatalogoDef;
+  def: CatalogoDefPublico;
   filtros: ColumnFilter[];
   search: string;
   puedeExportar: boolean;

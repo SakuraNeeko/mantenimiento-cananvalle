@@ -7,7 +7,7 @@ import { getCurrentTenant } from '@/lib/tenant';
 import { buildLimitOffset, buildOrderBy, buildWhere } from '@/lib/query-builder';
 import { parseTableQuery } from '@/components/data-table/types';
 import { PageHeader } from '@/components/layout/page-header';
-import { getCatalogo } from '@/lib/catalogs/registry';
+import { catalogoPublico, getCatalogo } from '@/lib/catalogs/registry';
 import { columnasBase } from '@/lib/catalogs/db-helpers';
 import { CatalogoTable, type RegistroRow } from './catalogo-table';
 import { ArbolCatalogo } from './arbol-catalogo';
@@ -28,6 +28,7 @@ export default async function CatalogoPage({
   const { catalogo } = await params;
   const def = getCatalogo(catalogo);
   if (!def) notFound();
+  const defPublico = catalogoPublico(def);
 
   const session = await requirePermission('infra.catalogos.ver');
   const tenant = await getCurrentTenant();
@@ -51,7 +52,7 @@ export default async function CatalogoPage({
         <div className="min-h-0 flex-1">
           <ArbolCatalogo
             slug={catalogo}
-            def={def}
+            def={defPublico}
             filas={filas as unknown as RegistroRow[]}
             puedeCrear={puedeCrear}
             puedeEditar={puedeEditar}
@@ -96,7 +97,7 @@ export default async function CatalogoPage({
       <div className="min-h-0 flex-1">
         <CatalogoTable
           slug={catalogo}
-          def={def}
+          def={defPublico}
           data={data}
           sort={query.sort}
           filters={query.filters}

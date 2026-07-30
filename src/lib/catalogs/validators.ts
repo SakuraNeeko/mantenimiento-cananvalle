@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import type { CampoDef, CatalogoDef } from './registry';
+import type { CampoDefPublico, CatalogoDefPublico } from './registry';
 
 /**
  * Forma que maneja el formulario genérico y las Server Actions: un catálogo
@@ -8,7 +8,7 @@ import type { CampoDef, CatalogoDef } from './registry';
  */
 export type ValoresDinamicos = Record<string, string | number | boolean | undefined>;
 
-function zodParaCampo(campo: CampoDef): z.ZodTypeAny {
+function zodParaCampo(campo: CampoDefPublico): z.ZodTypeAny {
   let base: z.ZodTypeAny;
 
   switch (campo.tipo) {
@@ -51,7 +51,7 @@ function zodParaCampo(campo: CampoDef): z.ZodTypeAny {
 }
 
 /** Construye el esquema Zod del catálogo a partir de su registro de campos. Una sola fuente de verdad, igual que `validators/usuario.ts`. */
-export function buildCatalogoSchema(def: CatalogoDef): z.ZodType<ValoresDinamicos> {
+export function buildCatalogoSchema(def: CatalogoDefPublico): z.ZodType<ValoresDinamicos> {
   const shape: Record<string, z.ZodTypeAny> = {};
   for (const campo of def.campos) {
     shape[campo.name] = zodParaCampo(campo);
@@ -60,7 +60,7 @@ export function buildCatalogoSchema(def: CatalogoDef): z.ZodType<ValoresDinamico
 }
 
 /** Valores por defecto de un formulario vacío, para que todos los campos estén controlados desde el inicio. */
-export function valoresIniciales(def: CatalogoDef): ValoresDinamicos {
+export function valoresIniciales(def: CatalogoDefPublico): ValoresDinamicos {
   const valores: ValoresDinamicos = {};
   for (const campo of def.campos) {
     if (campo.tipo === 'booleano') valores[campo.name] = campo.name === 'activo';

@@ -19,7 +19,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { getCatalogo } from '@/lib/catalogs/registry';
+import type { CatalogoDefPublico } from '@/lib/catalogs/registry';
 import { buildCatalogoSchema, valoresIniciales, type ValoresDinamicos } from '@/lib/catalogs/validators';
 import { crearRegistro, actualizarRegistro, obtenerRegistroParaEditar, obtenerOpciones } from './actions';
 
@@ -29,6 +29,7 @@ export function RegistroForm({
   open,
   onOpenChange,
   slug,
+  def,
   registroId,
   valoresExtra,
   onGuardado,
@@ -36,24 +37,24 @@ export function RegistroForm({
   open: boolean;
   onOpenChange: (open: boolean) => void;
   slug: string;
+  def: CatalogoDefPublico;
   /** Presente = editar; ausente = crear. */
   registroId?: string;
   /** Precarga campos al crear (ej. `parentId` al agregar un hijo desde el árbol). */
   valoresExtra?: Partial<ValoresDinamicos>;
   onGuardado: () => void;
 }) {
-  const def = getCatalogo(slug);
   const esEdicion = Boolean(registroId);
   const [cargando, setCargando] = React.useState(false);
   const [opcionesRef, setOpcionesRef] = React.useState<Record<string, { value: string; label: string }[]>>({});
 
   const form = useForm<ValoresDinamicos>({
-    resolver: def ? zodResolver(buildCatalogoSchema(def)) : undefined,
-    defaultValues: def ? { ...valoresIniciales(def), ...valoresExtra } : {},
+    resolver: zodResolver(buildCatalogoSchema(def)),
+    defaultValues: { ...valoresIniciales(def), ...valoresExtra },
   });
 
   React.useEffect(() => {
-    if (!open || !def) return;
+    if (!open) return;
 
     setCargando(true);
     Promise.all([obtenerOpciones(slug), registroId ? obtenerRegistroParaEditar(slug, registroId) : Promise.resolve(null)])
@@ -70,8 +71,6 @@ export function RegistroForm({
       .finally(() => setCargando(false));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, registroId, slug]);
-
-  if (!def) return null;
 
   async function onSubmit(valores: ValoresDinamicos) {
     const resultado = esEdicion ? await actualizarRegistro(slug, registroId!, valores) : await crearRegistro(slug, valores);
