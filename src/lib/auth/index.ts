@@ -15,6 +15,9 @@ const credentialsSchema = z.object({
 
 const MAX_ATTEMPTS = 5;
 const WINDOW_MINUTES = 15;
+/** Más alto que MAX_ATTEMPTS: una IP puede ser una oficina entera detrás de NAT — el límite por
+ * email ya frena fuerza bruta contra UNA cuenta; este frena "credential spraying" contra MUCHAS. */
+const MAX_ATTEMPTS_IP = 20;
 
 /** Precedencia de alcance: el más amplio de todos los roles del usuario. */
 const SCOPE_RANK: Record<Scope, number> = { PROPIO: 0, SEDE: 1, TENANT: 2 };
@@ -100,8 +103,24 @@ async function recentFailures(email: string): Promise<number> {
   return row?.n ?? 0;
 }
 
-async function logAttempt(email: string, exitoso: boolean, motivo?: string): Promise<void> {
-  await db.insert(loginAttempts).values({ email, exitoso, motivo: motivo ?? null });
+async function recentFailuresByIp(ip: string): Promise<number> {
+  const since = new Date(Date.now() - WINDOW_MINUTES * 60_000);
+  const [row] = await db
+    .select({ n: sql<number>`count(*)::int` })
+    .from(loginAttempts)
+    .where(and(eq(loginAttempts.ip, ip), eq(loginAttempts.exitoso, false), gte(loginAttempts.createdAt, since)));
+  return row?.n ?? 0;
+}
+
+/** `x-forwarded-for` puede traer una lista "cliente, proxy1, proxy2…" — el primero es el real. */
+function extraerIp(request: Request): string | null {
+  const forwarded = request.headers.get('x-forwarded-for');
+  if (forwarded) return forwarded.split(',')[0]!.trim();
+  return request.headers.get('x-real-ip');
+}
+
+async function logAttempt(email: string, exitoso: boolean, motivo?: string, ip?: string | null, userAgent?: string | null): Promise<void> {
+  await db.insert(loginAttempts).values({ email, exitoso, motivo: motivo ?? null, ip: ip ?? null, userAgent: userAgent ?? null });
 }
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
@@ -112,15 +131,24 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         email: { label: 'Correo', type: 'email' },
         password: { label: 'Contraseña', type: 'password' },
       },
-      async authorize(raw) {
+      async authorize(raw, request) {
         const parsed = credentialsSchema.safeParse(raw);
         if (!parsed.success) return null;
 
         const email = parsed.data.email.toLowerCase().trim();
+        const ip = extraerIp(request);
+        const userAgent = request.headers.get('user-agent');
 
         if ((await recentFailures(email)) >= MAX_ATTEMPTS) {
-          await logAttempt(email, false, 'BLOQUEADO_POR_INTENTOS');
+          await logAttempt(email, false, 'BLOQUEADO_POR_INTENTOS', ip, userAgent);
           throw new Error('Cuenta bloqueada temporalmente por intentos fallidos. Espera 15 minutos.');
+        }
+
+        // Frena "credential spraying" (muchos correos distintos desde la misma IP), un patrón
+        // que el bloqueo por email no detecta porque cada cuenta individual ve pocos intentos.
+        if (ip && (await recentFailuresByIp(ip)) >= MAX_ATTEMPTS_IP) {
+          await logAttempt(email, false, 'BLOQUEADO_POR_IP', ip, userAgent);
+          throw new Error('Demasiados intentos fallidos desde esta red. Espera 15 minutos.');
         }
 
         const [user] = await db
@@ -131,22 +159,22 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
         // Mensaje idéntico exista o no el usuario: no revelamos qué correos están registrados.
         if (!user?.passwordHash || !user.activo) {
-          await logAttempt(email, false, 'CREDENCIALES_INVALIDAS');
+          await logAttempt(email, false, 'CREDENCIALES_INVALIDAS', ip, userAgent);
           return null;
         }
 
         if (!(await verifyPassword(user.passwordHash, parsed.data.password))) {
-          await logAttempt(email, false, 'CREDENCIALES_INVALIDAS');
+          await logAttempt(email, false, 'CREDENCIALES_INVALIDAS', ip, userAgent);
           return null;
         }
 
         const profile = await loadSessionProfile(user.id);
         if (!profile) {
-          await logAttempt(email, false, 'PERFIL_NO_DISPONIBLE');
+          await logAttempt(email, false, 'PERFIL_NO_DISPONIBLE', ip, userAgent);
           return null;
         }
 
-        await logAttempt(email, true);
+        await logAttempt(email, true, undefined, ip, userAgent);
         await db.update(users).set({ lastLoginAt: new Date() }).where(eq(users.id, user.id));
 
         return { ...profile, email: profile.email, name: profile.nombre };
