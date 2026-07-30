@@ -71,7 +71,8 @@ export async function aplicarLineaKardex(tx: TxClient, tenantId: string, linea: 
 
   let loteAplicado = linea.lote;
   if (linea.manejaLote) {
-    loteAplicado = await consumirLote(tx, linea.warehouseId, linea.materialId, linea.lote, linea.cantidad);
+    const consumidos = await consumirLote(tx, linea.warehouseId, linea.materialId, linea.lote, linea.cantidad);
+    loteAplicado = consumidos.map((c) => c.lote).join(' + ');
   }
 
   const nuevaCantidad = cantidadActual - linea.cantidad;
@@ -139,15 +140,41 @@ async function upsertLote(
 }
 
 /**
- * Consume `cantidad` de un lote. Si no se especifica uno, elige por FEFO
- * (el que vence primero) entre los que tengan saldo suficiente.
- *
- * ⚠️ SOLUCIÓN RÁPIDA: solo consume de UN lote — si ninguno alcanza por sí
- * solo la cantidad pedida, falla pidiendo que se divida el movimiento a
- * mano. Repartir automáticamente entre varios lotes queda para cuando haga
- * falta de verdad.
+ * Decide qué lotes usar y cuánto tomar de cada uno para cubrir
+ * `cantidadNecesaria`, dado un arreglo de candidatos YA ordenados por FEFO
+ * (el que vence primero, primero). Pura — sin acceso a base de datos — para
+ * poder probarla directamente (ver tests/kardex-fefo.test.ts).
  */
-async function consumirLote(tx: TxClient, warehouseId: string, materialId: string, loteEspecificado: string | null, cantidad: number): Promise<string> {
+export function elegirLotesFEFO(candidatos: { lote: string; cantidad: number }[], cantidadNecesaria: number): { lote: string; cantidad: number }[] {
+  const consumidos: { lote: string; cantidad: number }[] = [];
+  let restante = cantidadNecesaria;
+  for (const c of candidatos) {
+    if (restante <= 0) break;
+    const tomar = Math.min(c.cantidad, restante);
+    if (tomar <= 0) continue;
+    consumidos.push({ lote: c.lote, cantidad: tomar });
+    restante -= tomar;
+  }
+  if (restante > 0) {
+    throw new KardexError(`Existencia insuficiente entre todos los lotes: faltan ${restante} por cubrir.`);
+  }
+  return consumidos;
+}
+
+/**
+ * Consume `cantidad` de un lote. Si no se especifica uno, elige por FEFO
+ * (el que vence primero) entre los que tengan saldo, repartiendo entre
+ * varios lotes si ninguno alcanza por sí solo. `aplicarLineaKardex` junta
+ * los lotes devueltos en un solo texto ("LOTE-A + LOTE-B") para
+ * `kardexMovementLines.lote`, que es una columna de texto libre.
+ */
+async function consumirLote(
+  tx: TxClient,
+  warehouseId: string,
+  materialId: string,
+  loteEspecificado: string | null,
+  cantidad: number,
+): Promise<{ lote: string; cantidad: number }[]> {
   if (loteEspecificado) {
     const [lote] = await tx
       .select()
@@ -159,7 +186,7 @@ async function consumirLote(tx: TxClient, warehouseId: string, materialId: strin
       throw new KardexError(`El lote "${loteEspecificado}" no tiene existencia suficiente.`);
     }
     await tx.update(stockLots).set({ cantidad: String(Number(lote.cantidad) - cantidad) }).where(eq(stockLots.id, lote.id));
-    return loteEspecificado;
+    return [{ lote: loteEspecificado, cantidad }];
   }
 
   const candidatos = await tx
@@ -169,13 +196,18 @@ async function consumirLote(tx: TxClient, warehouseId: string, materialId: strin
     .orderBy(sql`${stockLots.fechaVencimiento} asc nulls last`)
     .for('update');
 
-  const conSaldoSuficiente = candidatos.find((l) => Number(l.cantidad) >= cantidad);
-  if (!conSaldoSuficiente) {
-    throw new KardexError('Ningún lote individual tiene existencia suficiente para esta salida. Divide el movimiento por lote manualmente.');
+  const consumidos = elegirLotesFEFO(
+    candidatos.map((l) => ({ lote: l.lote, cantidad: Number(l.cantidad) })),
+    cantidad,
+  );
+
+  const porLote = new Map(candidatos.map((l) => [l.lote, l]));
+  for (const c of consumidos) {
+    const fila = porLote.get(c.lote)!;
+    await tx.update(stockLots).set({ cantidad: String(Number(fila.cantidad) - c.cantidad) }).where(eq(stockLots.id, fila.id));
   }
 
-  await tx.update(stockLots).set({ cantidad: String(Number(conSaldoSuficiente.cantidad) - cantidad) }).where(eq(stockLots.id, conSaldoSuficiente.id));
-  return conSaldoSuficiente.lote;
+  return consumidos;
 }
 
 /** Signo opuesto: lo usa `anularMovimiento` para revertir el efecto de cada línea. */
