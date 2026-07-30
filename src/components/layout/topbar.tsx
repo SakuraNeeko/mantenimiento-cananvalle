@@ -2,7 +2,10 @@
 
 import { useTheme } from 'next-themes';
 import Link from 'next/link';
-import { Bell, LogOut, MessageSquareWarning, Moon, Search, Smartphone, Sun, User } from 'lucide-react';
+import { LogOut, Menu, MessageSquareWarning, Moon, Search, Smartphone, Sun, User } from 'lucide-react';
+import { NotificacionesMenu } from './notificaciones-menu';
+import { SedeSelector } from './sede-selector';
+import { useSidebarMobile } from './sidebar-mobile-context';
 import { signOut } from 'next-auth/react';
 import { Button } from '@/components/ui/button';
 import {
@@ -21,32 +24,25 @@ export type TopbarProps = {
   roles: string[];
   sedes: { id: string; nombre: string }[];
   sedeActual: string | null;
+  mostrarTodasLasSedes: boolean;
   notificacionesSinLeer: number;
 };
 
-export function Topbar({ nombre, email, roles, sedes, sedeActual, notificacionesSinLeer }: TopbarProps) {
+export function Topbar({ nombre, email, roles, sedes, sedeActual, mostrarTodasLasSedes, notificacionesSinLeer }: TopbarProps) {
   const { theme, setTheme } = useTheme();
+  const { alternar } = useSidebarMobile();
   const sede = sedes.find((s) => s.id === sedeActual);
 
   return (
-    <header className="flex h-12 shrink-0 items-center gap-2 border-b bg-card px-3">
-      {sedes.length > 1 ? (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline" size="sm">
-              {sede?.nombre ?? 'Todas las sedes'}
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="start">
-            <DropdownMenuLabel>Sede activa</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            {sedes.map((s) => (
-              <DropdownMenuItem key={s.id}>{s.nombre}</DropdownMenuItem>
-            ))}
-          </DropdownMenuContent>
-        </DropdownMenu>
+    <header className="flex h-12 shrink-0 items-center gap-2 border-b bg-card px-2 sm:px-3">
+      <Button variant="ghost" size="icon" className="shrink-0 md:hidden" onClick={alternar} aria-label="Abrir menú">
+        <Menu aria-hidden />
+      </Button>
+
+      {sedes.length > 1 || mostrarTodasLasSedes ? (
+        <SedeSelector sedes={sedes} sedeActual={sedeActual} mostrarTodasLasSedes={mostrarTodasLasSedes} />
       ) : (
-        <span className="text-xs font-medium text-muted-foreground">{sede?.nombre ?? ''}</span>
+        <span className="hidden text-xs font-medium text-muted-foreground sm:inline">{sede?.nombre ?? ''}</span>
       )}
 
       <Button
@@ -62,14 +58,7 @@ export function Topbar({ nombre, email, roles, sedes, sedeActual, notificaciones
       </Button>
 
       <div className="ml-auto flex items-center gap-1">
-        <Button variant="ghost" size="icon" className="relative" aria-label="Notificaciones">
-          <Bell aria-hidden />
-          {notificacionesSinLeer > 0 ? (
-            <Badge variant="destructive" className="absolute -right-0.5 -top-0.5 h-4 min-w-4 justify-center px-1">
-              {notificacionesSinLeer > 9 ? '9+' : notificacionesSinLeer}
-            </Badge>
-          ) : null}
-        </Button>
+        <NotificacionesMenu sinLeerInicial={notificacionesSinLeer} />
 
         <Button
           variant="ghost"

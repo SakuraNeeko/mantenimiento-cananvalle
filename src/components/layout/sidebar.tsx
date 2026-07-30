@@ -29,6 +29,7 @@ import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import type { IconName, NavGroup } from './nav-config';
+import { useSidebarMobile } from './sidebar-mobile-context';
 
 /** Resuelve el nombre de ícono (string, ver nav-config.ts) al componente real — solo existe en el cliente. */
 const ICONS: Record<IconName, LucideIcon> = {
@@ -54,15 +55,27 @@ const ICONS: Record<IconName, LucideIcon> = {
 export function Sidebar({ grupos, empresa }: { grupos: NavGroup[]; empresa: string }) {
   const pathname = usePathname();
   const [colapsado, setColapsado] = React.useState(false);
+  const { abierto, cerrar } = useSidebarMobile();
+
+  // Al navegar desde el cajón móvil, se cierra solo — si no, taparía la página recién abierta.
+  React.useEffect(() => {
+    cerrar();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pathname]);
 
   return (
-    <aside
-      className={cn(
-        'flex shrink-0 flex-col border-r bg-card transition-[width] duration-200',
-        colapsado ? 'w-14' : 'w-60',
-      )}
-      aria-label="Navegación principal"
-    >
+    <>
+      {abierto ? (
+        <div className="fixed inset-0 z-40 bg-black/50 md:hidden" onClick={cerrar} aria-hidden />
+      ) : null}
+      <aside
+        className={cn(
+          'fixed inset-y-0 left-0 z-50 w-60 shrink-0 flex-col border-r bg-card md:static md:z-auto md:flex',
+          abierto ? 'flex' : 'hidden',
+          colapsado ? 'md:w-14' : 'md:w-60',
+        )}
+        aria-label="Navegación principal"
+      >
       <div className="flex h-12 items-center gap-2 border-b px-3">
         <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-[6px] bg-primary text-primary-foreground">
           <span className="font-codigo text-xs font-bold">GM</span>
@@ -123,7 +136,7 @@ export function Sidebar({ grupos, empresa }: { grupos: NavGroup[]; empresa: stri
         ))}
       </nav>
 
-      <div className="border-t p-2">
+      <div className="hidden border-t p-2 md:block">
         <Button
           variant="ghost"
           size="sm"
@@ -135,6 +148,7 @@ export function Sidebar({ grupos, empresa }: { grupos: NavGroup[]; empresa: stri
           {!colapsado ? <span>Colapsar</span> : null}
         </Button>
       </div>
-    </aside>
+      </aside>
+    </>
   );
 }

@@ -77,7 +77,7 @@ export const NAV_GROUPS: NavGroup[] = [
     items: [
       { href: '/combustibles', label: 'Combustibles', icon: 'Fuel', permisos: ['combustibles.ver'], modulo: 'combustibles', fase: 1 },
       { href: '/tecnovigilancia', label: 'Tecnovigilancia', icon: 'ClipboardList', permisos: ['tecnovigilancia.ver'], modulo: 'tecnovigilancia', fase: 1 },
-      { href: '/automatizador', label: 'Automatizador', icon: 'Zap', permisos: ['automatizador.ver'], modulo: 'automatizador', fase: 12 },
+      { href: '/automatizador', label: 'Automatizador', icon: 'Zap', permisos: ['automatizador.ver'], modulo: 'automatizador', fase: 1 },
     ],
   },
   {
@@ -87,7 +87,7 @@ export const NAV_GROUPS: NavGroup[] = [
       { href: '/administracion/roles', label: 'Roles y permisos', icon: 'Cog', permisos: ['admin.roles.gestionar'], fase: 1 },
       { href: '/administracion/auditoria', label: 'Auditoría', icon: 'Cog', permisos: ['admin.auditoria.ver'], fase: 1 },
       { href: '/administracion/modulos', label: 'Módulos opcionales', icon: 'Cog', permisos: ['admin.modulos.activar'], fase: 1 },
-      { href: '/administracion/integraciones', label: 'Integraciones', icon: 'Plug', permisos: ['admin.integraciones.gestionar'], fase: 12 },
+      { href: '/administracion/integraciones', label: 'Integraciones', icon: 'Plug', permisos: ['admin.integraciones.gestionar'], fase: 1 },
     ],
   },
 ];

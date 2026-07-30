@@ -2,6 +2,8 @@
 
 import * as React from 'react';
 import type { Table as TanstackTable } from '@tanstack/react-table';
+import * as XLSX from 'xlsx';
+import { toast } from 'sonner';
 import { Columns3, Download, Filter, Rows3, Search, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -59,6 +61,43 @@ export function DataTableToolbar<TData>({
     const meta = col?.columnDef.meta as ColumnMeta | undefined;
     return meta?.label ?? id;
   };
+
+  /**
+   * Exporta la página actual de la tabla (las filas ya cargadas) a Excel.
+   * Antes este botón estaba deshabilitado en TODOS los módulos ("Fase 2",
+   * pero nunca se implementó ahí ni en ninguna fase posterior — solo el
+   * exportador propio de Infraestructura funcionaba). Exporta las filas
+   * visibles de la página actual, no el listado completo del servidor:
+   * para exportar más filas, sube el tamaño de página antes de exportar.
+   */
+  function exportarPaginaActual() {
+    const columnas = table.getAllLeafColumns().filter((c) => c.columnDef.meta);
+    if (columnas.length === 0 || table.getRowModel().rows.length === 0) {
+      toast.info('No hay filas para exportar.');
+      return;
+    }
+
+    const headers = columnas.map((c) => (c.columnDef.meta as ColumnMeta).label);
+    const filas = table.getRowModel().rows.map((row) =>
+      columnas.map((col) => {
+        const meta = col.columnDef.meta as ColumnMeta;
+        const valor = row.getValue(col.id);
+        if (valor === null || valor === undefined || valor === '') return '';
+        if (meta.tipo === 'booleano') return valor ? 'Sí' : 'No';
+        if (meta.tipo === 'enum') return meta.opciones?.find((o) => o.value === valor)?.label ?? String(valor);
+        if (meta.tipo === 'fecha') {
+          const fecha = valor instanceof Date ? valor : new Date(String(valor));
+          return Number.isNaN(fecha.getTime()) ? String(valor) : fecha.toLocaleDateString('es-EC');
+        }
+        return typeof valor === 'number' ? valor : String(valor);
+      }),
+    );
+
+    const hoja = XLSX.utils.aoa_to_sheet([headers, ...filas]);
+    const libro = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(libro, hoja, modulo.slice(0, 31));
+    XLSX.writeFile(libro, `${modulo}.xlsx`);
+  }
 
   return (
     <div className="flex flex-wrap items-center gap-2">
@@ -179,7 +218,7 @@ export function DataTableToolbar<TData>({
           </DropdownMenuContent>
         </DropdownMenu>
 
-        <Button variant="outline" size="icon" aria-label="Exportar" title="Exportar (Fase 2)" disabled>
+        <Button variant="outline" size="icon" aria-label="Exportar a Excel" title="Exportar la página actual a Excel" onClick={exportarPaginaActual}>
           <Download aria-hidden />
         </Button>
 
