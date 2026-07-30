@@ -1,4 +1,4 @@
-import { and, asc, eq, gt, sql } from 'drizzle-orm';
+import { and, eq, gt, sql } from 'drizzle-orm';
 import type { DbTx } from '@/db';
 import { stockLots, warehouseStock } from '@/db/schema';
 
@@ -166,7 +166,7 @@ async function consumirLote(tx: TxClient, warehouseId: string, materialId: strin
     .select()
     .from(stockLots)
     .where(and(eq(stockLots.warehouseId, warehouseId), eq(stockLots.materialId, materialId), gt(stockLots.cantidad, '0')))
-    .orderBy(asc(sql`${stockLots.fechaVencimiento} nulls last`))
+    .orderBy(sql`${stockLots.fechaVencimiento} asc nulls last`)
     .for('update');
 
   const conSaldoSuficiente = candidatos.find((l) => Number(l.cantidad) >= cantidad);
