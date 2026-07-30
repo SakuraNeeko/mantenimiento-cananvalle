@@ -2,7 +2,7 @@
 
 Aplicación web de mantenimiento industrial: activos, planes preventivos, órdenes de trabajo, kárdex e indicadores.
 
-**Fase actual: 11 — PWA móvil offline.** Una app instalable para técnicos en campo (`/movil`), con checklist, fotos y firma de la orden que funcionan sin conexión real (IndexedDB vía Dexie) y una cola de sincronización que se reproduce sola al volver la señal, con resolución de conflictos "última escritura gana" y bitácora de auditoría (`sync_conflicts`). Incluye escaneo de QR de activos (reutiliza el generador de la Fase 3). Detalle en `ENTREGA-FASE-11.md` (`ENTREGA-FASE-10.md` y anteriores para las entregas previas — ver el índice completo al final de este documento).
+**Fase actual: 12 — Automatizador, API e integraciones.** Motor de reglas disparador → condiciones → acciones sin código (`/automatizador`, evaluado a diario por cron), API pública REST v1 autenticada por API key (`/api/v1/activos|ordenes|solicitudes`), y `/administracion/integraciones` para crear/revocar API keys y revisar la bitácora de webhooks salientes. Detalle en `ENTREGA-FASE-12.md` (`ENTREGA-FASE-11.md` y anteriores para las entregas previas — ver el índice completo al final de este documento).
 
 ---
 
@@ -158,6 +158,6 @@ src/
 | 8. Paros / averías | ✅ |
 | 9. Historia y KPIs | ✅ |
 | 10. Combustibles y tecnovigilancia | ✅ |
-| 11. PWA móvil offline | ✅ Esta entrega |
-| 12. Automatizador, API e integraciones | Siguiente |
-| 13. Endurecimiento | Pendiente |
+| 11. PWA móvil offline | ✅ |
+| 12. Automatizador, API e integraciones | ✅ Esta entrega |
+| 13. Endurecimiento | Siguiente |

@@ -18,3 +18,5 @@ export * from './historia';
 export * from './combustibles';
 export * from './tecnovigilancia';
 export * from './sync';
+export * from './automatizador';
+export * from './integraciones';

@@ -112,7 +112,7 @@ export const physicalInventoryEstadoEnum = pgEnum('physical_inventory_estado', [
 /* -------------------------------------------------------------------------- */
 
 /** De dónde nació la OT. PLAN (Fase 7) y PARO (Fase 8) quedan declarados para cuando existan esos módulos. */
-export const woOrigenEnum = pgEnum('wo_origen', ['MANUAL', 'PLAN', 'SS', 'PARO']);
+export const woOrigenEnum = pgEnum('wo_origen', ['MANUAL', 'PLAN', 'SS', 'PARO', 'AUTOMATIZACION']);
 
 /** Tipo de respuesta esperada en un ítem del checklist. */
 export const woTaskTipoRespuestaEnum = pgEnum('wo_task_tipo_respuesta', ['OK_NO_OK', 'NUMERICO', 'TEXTO', 'FOTO', 'FIRMA']);
@@ -179,3 +179,21 @@ export const adverseEventTipoEnum = pgEnum('adverse_event_tipo', ['EVENTO_ADVERS
 export const adverseEventSeveridadEnum = pgEnum('adverse_event_severidad', ['LEVE', 'MODERADA', 'GRAVE', 'CRITICA']);
 
 export const adverseEventEstadoEnum = pgEnum('adverse_event_estado', ['ABIERTO', 'EN_GESTION', 'CERRADO']);
+
+/* -------------------------------------------------------------------------- */
+/* FASE 12 — AUTOMATIZADOR, API E INTEGRACIONES (§4.12)                       */
+/* -------------------------------------------------------------------------- */
+
+/** Los 8 disparadores del prompt maestro (§4.12). Cada uno se evalúa por barrido periódico (Vercel Cron), no por hook en tiempo real — mismo patrón que la generación de OT desde planes (Fase 7). */
+export const automationDisparadorEnum = pgEnum('automation_disparador', [
+  'OT_CREADA',
+  'OT_CAMBIO_ESTADO',
+  'SS_CREADA',
+  'MEDIDOR_FUERA_RANGO',
+  'STOCK_BAJO_MINIMO',
+  'OT_VENCIDA',
+  'CONTRATO_POR_VENCER',
+  'PARO_EXCEDE_HORAS',
+]);
+
+export const automationResultadoEnum = pgEnum('automation_resultado', ['EJECUTADA', 'ERROR']);

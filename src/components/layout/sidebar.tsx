@@ -19,6 +19,7 @@ import {
   MessageSquareWarning,
   PanelLeftClose,
   PanelLeftOpen,
+  Plug,
   ShieldAlert,
   Wrench,
   Zap,
@@ -47,6 +48,7 @@ const ICONS: Record<IconName, LucideIcon> = {
   ClipboardList,
   Zap,
   Cog,
+  Plug,
 };
 
 export function Sidebar({ grupos, empresa }: { grupos: NavGroup[]; empresa: string }) {

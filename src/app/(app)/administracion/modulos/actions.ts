@@ -44,6 +44,6 @@ export async function obtenerModulos() {
   return [
     { modulo: 'combustibles', nombre: 'Combustibles', descripcion: 'Registro de abastecimiento, rendimiento y consumos anómalos (Fase 10).', habilitado: mapa.get('combustibles') ?? false },
     { modulo: 'tecnovigilancia', nombre: 'Tecnovigilancia', descripcion: 'Eventos adversos y alertas de fabricante para equipos biomédicos (Fase 10).', habilitado: mapa.get('tecnovigilancia') ?? false },
-    { modulo: 'automatizador', nombre: 'Automatizador', descripcion: 'Motor de reglas disparador → condiciones → acciones (Fase 12, todavía no construido).', habilitado: mapa.get('automatizador') ?? false },
+    { modulo: 'automatizador', nombre: 'Automatizador', descripcion: 'Motor de reglas disparador → condiciones → acciones, evaluado a diario (Fase 12).', habilitado: mapa.get('automatizador') ?? false },
   ];
 }

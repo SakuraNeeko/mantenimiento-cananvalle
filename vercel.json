@@ -3,6 +3,7 @@
     { "path": "/api/cron/generar-ot", "schedule": "0 5 * * *" },
     { "path": "/api/cron/alertas", "schedule": "0 6 * * *" },
     { "path": "/api/cron/reportes-programados", "schedule": "0 7 * * *" },
-    { "path": "/api/cron/kpi-snapshot", "schedule": "30 4 * * *" }
+    { "path": "/api/cron/kpi-snapshot", "schedule": "30 4 * * *" },
+    { "path": "/api/cron/evaluar-automatizacion", "schedule": "0 8 * * *" }
   ]
 }

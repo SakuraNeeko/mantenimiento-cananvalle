@@ -120,6 +120,9 @@ export const assetMeters = pgTable(
       .references(() => meters.id, { onDelete: 'restrict' }),
     valorActual: numeric('valor_actual', { precision: 18, scale: 4 }).notNull().default('0'),
     promedioUsoDiario: numeric('promedio_uso_diario', { precision: 18, scale: 4 }),
+    /** Rango normal de lectura para este activo (Fase 12, disparador "medidor fuera de rango"). Vacío = sin vigilancia de rango, solo uso/desgaste. */
+    rangoMin: numeric('rango_min', { precision: 18, scale: 4 }),
+    rangoMax: numeric('rango_max', { precision: 18, scale: 4 }),
     ...auditColumns,
   },
   (t) => [

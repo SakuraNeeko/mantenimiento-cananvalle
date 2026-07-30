@@ -24,7 +24,8 @@ export type IconName =
   | 'Fuel'
   | 'ClipboardList'
   | 'Zap'
-  | 'Cog';
+  | 'Cog'
+  | 'Plug';
 
 export type NavItem = {
   href: string;
@@ -86,6 +87,7 @@ export const NAV_GROUPS: NavGroup[] = [
       { href: '/administracion/roles', label: 'Roles y permisos', icon: 'Cog', permisos: ['admin.roles.gestionar'], fase: 1 },
       { href: '/administracion/auditoria', label: 'Auditoría', icon: 'Cog', permisos: ['admin.auditoria.ver'], fase: 1 },
       { href: '/administracion/modulos', label: 'Módulos opcionales', icon: 'Cog', permisos: ['admin.modulos.activar'], fase: 1 },
+      { href: '/administracion/integraciones', label: 'Integraciones', icon: 'Plug', permisos: ['admin.integraciones.gestionar'], fase: 12 },
     ],
   },
 ];
