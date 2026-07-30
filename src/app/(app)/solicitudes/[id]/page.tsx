@@ -85,6 +85,7 @@ export default async function SolicitudDetallePage({ params }: { params: Promise
           atencionDirecta: hasPermission(session, 'solicitudes.atencion_directa'),
           cerrar: hasPermission(session, 'solicitudes.cerrar'),
           calificar: hasPermission(session, 'solicitudes.calificar'),
+          convertirOt: hasPermission(session, 'solicitudes.convertir_ot') && hasPermission(session, 'ordenes.crear'),
         }}
       />
     </div>

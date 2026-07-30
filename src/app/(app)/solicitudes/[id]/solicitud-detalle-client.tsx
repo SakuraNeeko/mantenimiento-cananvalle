@@ -3,7 +3,7 @@
 import * as React from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
-import { Send, Star, Trash2 } from 'lucide-react';
+import { ArrowRightLeft, Send, Star, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
@@ -29,6 +29,7 @@ import {
   resolverSolicitud,
   type OpcionesSolicitud,
 } from '../actions';
+import { convertirSolicitudEnOrden } from '../../ordenes/actions';
 
 type Solicitud = {
   id: string;
@@ -82,7 +83,7 @@ export function SolicitudDetalleClient({
   opciones: OpcionesSolicitud | null;
   responsables: { value: string; label: string }[];
   currentUserId: string;
-  permisos: { editar: boolean; aprobar: boolean; rechazar: boolean; asignar: boolean; atender: boolean; atencionDirecta: boolean; cerrar: boolean; calificar: boolean };
+  permisos: { editar: boolean; aprobar: boolean; rechazar: boolean; asignar: boolean; atender: boolean; atencionDirecta: boolean; cerrar: boolean; calificar: boolean; convertirOt: boolean };
 }) {
   const router = useRouter();
   const esDuenio = solicitud.solicitanteUserId === currentUserId;
@@ -112,6 +113,18 @@ export function SolicitudDetalleClient({
     }
     toast.success(mensajeExito);
     router.refresh();
+  }
+
+  async function convertirEnOt() {
+    setProcesando(true);
+    const resultado = await convertirSolicitudEnOrden(solicitud.id);
+    setProcesando(false);
+    if (!resultado.ok) {
+      toast.error(resultado.error);
+      return;
+    }
+    toast.success('Solicitud convertida en orden de trabajo.');
+    router.push(`/ordenes/${resultado.id}`);
   }
 
   async function enviarNota() {
@@ -252,6 +265,13 @@ export function SolicitudDetalleClient({
         ) : null}
 
         {permisos.asignar && solicitud.estado === 'APROBADA' ? <Button onClick={() => setDialogAsignar(true)}>Asignar responsable</Button> : null}
+
+        {permisos.convertirOt && solicitud.estado === 'APROBADA' ? (
+          <Button variant="outline" onClick={convertirEnOt} loading={procesando}>
+            <ArrowRightLeft aria-hidden />
+            Convertir en OT
+          </Button>
+        ) : null}
 
         {permisos.atender && solicitud.estado === 'ASIGNADA' ? (
           <Button onClick={() => ejecutar(() => iniciarAtencionSolicitud(solicitud.id), 'Atención iniciada.')} loading={procesando}>

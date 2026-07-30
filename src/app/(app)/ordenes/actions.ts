@@ -26,6 +26,7 @@ import {
   woMaterials,
   woOtherCosts,
   woStatusHistory,
+  woTasks,
   woThirdPartyCosts,
   workOrders,
   workTypes,
@@ -206,7 +207,6 @@ export async function marcarEjecutada(id: string): Promise<AccionResultado> {
   if (!ot) return { ok: false, error: 'La orden ya no existe.' };
   if (ot.estado !== 'EN_EJECUCION') return { ok: false, error: 'Solo se puede marcar como ejecutada una orden en ejecución.' };
 
-  const { woTasks } = await import('@/db/schema');
   const [pendientesCriticas] = await db
     .select({ n: sql<number>`count(*)::int` })
     .from(woTasks)

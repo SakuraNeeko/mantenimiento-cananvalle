@@ -6,7 +6,7 @@ test.describe('autenticación', () => {
     await page.getByLabel('Correo electrónico').fill('noexiste@ejemplo.com');
     await page.getByLabel('Contraseña').fill('claveIncorrecta1!');
     await page.getByRole('button', { name: 'Entrar' }).click();
-    await expect(page.getByRole('alert')).toContainText('incorrectos');
+    await expect(page.getByText('Correo o contraseña incorrectos', { exact: false })).toBeVisible();
   });
 
   test('redirige al login cualquier ruta protegida', async ({ page }) => {
@@ -24,6 +24,6 @@ test.describe('autenticación', () => {
     await page.getByLabel('Contraseña').fill(password!);
     await page.getByRole('button', { name: 'Entrar' }).click();
     await expect(page).toHaveURL(/\/dashboard/);
-    await expect(page.getByRole('navigation', { name: 'Navegación principal' })).toBeVisible();
+    await expect(page.getByRole('complementary', { name: 'Navegación principal' })).toBeVisible();
   });
 });
