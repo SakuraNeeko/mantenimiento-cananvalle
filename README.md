@@ -2,7 +2,7 @@
 
 Aplicación web de mantenimiento industrial: activos, planes preventivos, órdenes de trabajo, kárdex e indicadores.
 
-**Fase actual: 10 — Combustibles y Tecnovigilancia.** Los dos primeros módulos opcionales, activables por empresa desde `/administracion/modulos` (`tenant_modules`, sembrada desde la Fase 1). Combustibles registra cada abastecimiento y calcula rendimiento (km/gal, h/gal) y consumos anómalos comparando cargas consecutivas del mismo activo. Tecnovigilancia registra eventos adversos, incidentes y alertas de fabricante de equipos biomédicos, con reporte a la autoridad sanitaria. Detalle en `ENTREGA-FASE-10.md` (`ENTREGA-FASE-9.md` y anteriores para las entregas previas — ver el índice completo al final de este documento).
+**Fase actual: 11 — PWA móvil offline.** Una app instalable para técnicos en campo (`/movil`), con checklist, fotos y firma de la orden que funcionan sin conexión real (IndexedDB vía Dexie) y una cola de sincronización que se reproduce sola al volver la señal, con resolución de conflictos "última escritura gana" y bitácora de auditoría (`sync_conflicts`). Incluye escaneo de QR de activos (reutiliza el generador de la Fase 3). Detalle en `ENTREGA-FASE-11.md` (`ENTREGA-FASE-10.md` y anteriores para las entregas previas — ver el índice completo al final de este documento).
 
 ---
 
@@ -157,7 +157,7 @@ src/
 | 7. Planes y generación automática | ✅ |
 | 8. Paros / averías | ✅ |
 | 9. Historia y KPIs | ✅ |
-| 10. Combustibles y tecnovigilancia | ✅ Esta entrega |
-| 11. PWA móvil offline | Siguiente |
-| 12. Automatizador, API e integraciones | Pendiente |
+| 10. Combustibles y tecnovigilancia | ✅ |
+| 11. PWA móvil offline | ✅ Esta entrega |
+| 12. Automatizador, API e integraciones | Siguiente |
 | 13. Endurecimiento | Pendiente |

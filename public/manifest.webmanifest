@@ -1,0 +1,15 @@
+{
+  "name": "GMAO Móvil — Cananvalle Flowers",
+  "short_name": "GMAO Móvil",
+  "description": "Órdenes de trabajo, checklist y solicitudes para técnicos en campo, con trabajo sin conexión.",
+  "start_url": "/movil/mis-ordenes",
+  "scope": "/movil/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#0b1220",
+  "theme_color": "#1d4ed8",
+  "icons": [
+    { "src": "/icons/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "/icons/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "maskable" }
+  ]
+}

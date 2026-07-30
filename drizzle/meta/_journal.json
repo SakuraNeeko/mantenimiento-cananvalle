@@ -71,6 +71,13 @@
       "when": 1785350544186,
       "tag": "0009_fase10_combustibles_tecnovigilancia",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1785380771773,
+      "tag": "0010_fase11_pwa_offline",
+      "breakpoints": true
     }
   ]
 }

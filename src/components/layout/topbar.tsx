@@ -2,7 +2,7 @@
 
 import { useTheme } from 'next-themes';
 import Link from 'next/link';
-import { Bell, LogOut, MessageSquareWarning, Moon, Search, Sun, User } from 'lucide-react';
+import { Bell, LogOut, MessageSquareWarning, Moon, Search, Smartphone, Sun, User } from 'lucide-react';
 import { signOut } from 'next-auth/react';
 import { Button } from '@/components/ui/button';
 import {
@@ -111,6 +111,12 @@ export function Topbar({ nombre, email, roles, sedes, sedeActual, notificaciones
               <Link href="/mis-solicitudes">
                 <MessageSquareWarning aria-hidden />
                 Portal de solicitudes
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link href="/movil/mis-ordenes">
+                <Smartphone aria-hidden />
+                Vista móvil (técnicos)
               </Link>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
