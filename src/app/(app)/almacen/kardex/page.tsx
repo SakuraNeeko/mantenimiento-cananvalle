@@ -1,8 +1,8 @@
 import type { Metadata } from 'next';
-import { and, eq, sql } from 'drizzle-orm';
+import { and, eq, inArray, sql } from 'drizzle-orm';
 import { db } from '@/db';
 import { kardexConcepts, kardexMovements, parties, warehouses } from '@/db/schema';
-import { hasAny, requirePermission } from '@/lib/permissions';
+import { hasAny, requirePermission, scopeDescriptor } from '@/lib/permissions';
 import { getCurrentTenant } from '@/lib/tenant';
 import { buildLimitOffset, buildOrderBy, buildWhere } from '@/lib/query-builder';
 import { parseTableQuery } from '@/components/data-table/types';
@@ -26,8 +26,12 @@ export default async function KardexPage({
   const session = await requirePermission('almacen.kardex.ver');
   const tenant = await getCurrentTenant();
   const query = parseTableQuery(await searchParams);
+  const { scope, siteIds } = scopeDescriptor(session);
 
-  const where = and(eq(kardexMovements.tenantId, tenant.id), buildWhere(COLUMNAS, query.filters, query.search, ['consecutivo', 'documentoSoporte']));
+  // Sin alcance TENANT, un movimiento solo se ve si el almacén pertenece a una sede asignada al usuario.
+  const alcance = scope === 'TENANT' ? undefined : inArray(warehouses.siteId, siteIds.length > 0 ? siteIds : ['—']);
+
+  const where = and(eq(kardexMovements.tenantId, tenant.id), alcance, buildWhere(COLUMNAS, query.filters, query.search, ['consecutivo', 'documentoSoporte']));
   const { limit, offset } = buildLimitOffset(query);
 
   const [rows, totalRow] = await Promise.all([
@@ -50,7 +54,7 @@ export default async function KardexPage({
       .orderBy(...buildOrderBy(COLUMNAS, query.sort, kardexMovements.fecha))
       .limit(limit)
       .offset(offset),
-    db.select({ n: sql<number>`count(*)::int` }).from(kardexMovements).where(where),
+    db.select({ n: sql<number>`count(*)::int` }).from(kardexMovements).innerJoin(warehouses, eq(warehouses.id, kardexMovements.warehouseId)).where(where),
   ]);
 
   const data = {

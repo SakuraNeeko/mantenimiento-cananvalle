@@ -46,8 +46,9 @@ export function GenerarClient() {
   }
 
   React.useEffect(() => {
+    // Carga única al montar: no hay prop de la que derivar esto, es un fetch de arranque de página.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     analizar();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   function alternar(key: string) {

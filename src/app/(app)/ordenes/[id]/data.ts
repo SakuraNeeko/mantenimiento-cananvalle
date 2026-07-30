@@ -39,6 +39,7 @@ export const obtenerOrdenDetalle = cache(async (id: string) => {
       assetCodigo: assets.codigo,
       assetNombre: assets.nombre,
       locationNombre: locations.nombre,
+      locationSiteId: locations.siteId,
       costCenterNombre: costCenters.nombre,
       responsibleCenterNombre: responsibleCenters.nombre,
       maintenanceTypeNombre: maintenanceTypes.nombre,

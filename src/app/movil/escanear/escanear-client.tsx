@@ -24,6 +24,8 @@ export function EscanearClient() {
   const [buscando, setBuscando] = React.useState(false);
 
   React.useEffect(() => {
+    // `window` no existe en SSR: la detección de la API solo puede hacerse tras montar.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setSoportado('BarcodeDetector' in window);
   }, []);
 

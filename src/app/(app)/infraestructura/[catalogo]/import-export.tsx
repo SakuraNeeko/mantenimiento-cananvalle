@@ -13,6 +13,7 @@ import { cn } from '@/lib/utils';
 import type { ColumnFilter } from '@/components/data-table/types';
 import type { CatalogoDefPublico } from '@/lib/catalogs/registry';
 import { mapearFilaExcel } from '@/lib/catalogs/excel-mapping';
+import { aplicarFormatoHoja } from '@/lib/excel/hoja-con-formato';
 import { exportarFilas, importarFilas, type ResultadoImportacion } from './actions';
 
 type ResultadoOk = Extract<ResultadoImportacion, { ok: true }>;
@@ -41,7 +42,9 @@ export function ImportExportBar({
     setExportando(true);
     try {
       const { headers, rows } = await exportarFilas(slug, filtros, search);
-      const hoja = XLSX.utils.aoa_to_sheet([headers, ...rows]);
+      const hoja = XLSX.utils.aoa_to_sheet([headers, ...rows], { cellDates: true });
+      const columnasFecha = def.campos.map((c) => c.tipo === 'fecha');
+      aplicarFormatoHoja(hoja, headers, rows, columnasFecha);
       const libro = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(libro, hoja, def.titulo.slice(0, 31));
       XLSX.writeFile(libro, `${slug}.xlsx`);

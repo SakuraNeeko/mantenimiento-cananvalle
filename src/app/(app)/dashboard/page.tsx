@@ -10,7 +10,7 @@ import { getCurrentTenant } from '@/lib/tenant';
 import { PageHeader } from '@/components/layout/page-header';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { fmtRelative } from '@/lib/datetime';
+import { fmtRelative, hace, inicioDeMesActual } from '@/lib/datetime';
 import { calcularDisponibilidad, calcularMTBF, calcularMTTR } from '@/lib/kpis/calculos';
 
 export const metadata: Metadata = { title: 'Dashboard' };
@@ -21,8 +21,8 @@ export default async function DashboardPage() {
   const session = await requirePermission('reportes.dashboard.ver');
   const tenant = await getCurrentTenant();
 
-  const desde = new Date(Date.now() - 7 * 24 * 3600 * 1000);
-  const inicioMes = new Date(Date.UTC(new Date().getUTCFullYear(), new Date().getUTCMonth(), 1));
+  const desde = hace(7);
+  const inicioMes = inicioDeMesActual();
 
   const [usuariosActivos, eventos, criticos, ordenesAbiertas, mtbf, mttr] = await Promise.all([
     db

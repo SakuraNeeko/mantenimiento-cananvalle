@@ -5,6 +5,7 @@ import type { Table as TanstackTable } from '@tanstack/react-table';
 import * as XLSX from 'xlsx';
 import { toast } from 'sonner';
 import { Columns3, Download, Filter, Rows3, Search, X } from 'lucide-react';
+import { aplicarFormatoHoja } from '@/lib/excel/hoja-con-formato';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -46,8 +47,11 @@ export function DataTableToolbar<TData>({
   seleccionadas: number;
 }) {
   const [borrador, setBorrador] = React.useState(search);
-
-  React.useEffect(() => setBorrador(search), [search]);
+  const [searchPrevio, setSearchPrevio] = React.useState(search);
+  if (search !== searchPrevio) {
+    setSearchPrevio(search);
+    setBorrador(search);
+  }
 
   // Debounce de 350 ms: cada pulsación no puede disparar una consulta al servidor.
   React.useEffect(() => {
@@ -69,6 +73,13 @@ export function DataTableToolbar<TData>({
    * exportador propio de Infraestructura funcionaba). Exporta las filas
    * visibles de la página actual, no el listado completo del servidor:
    * para exportar más filas, sube el tamaño de página antes de exportar.
+   *
+   * Las fechas se escriben como fecha real de Excel (no como texto), para
+   * que se puedan ordenar/filtrar como fecha en vez de alfabéticamente. Los
+   * anchos de columna se calculan del contenido y se agrega autofiltro en
+   * el encabezado — la edición community de `xlsx` no permite negrita ni
+   * color de celda (eso exige la versión de paga), así que el margen de
+   * mejora visual real se agota ahí.
    */
   function exportarPaginaActual() {
     const columnas = table.getAllLeafColumns().filter((c) => c.columnDef.meta);
@@ -87,13 +98,16 @@ export function DataTableToolbar<TData>({
         if (meta.tipo === 'enum') return meta.opciones?.find((o) => o.value === valor)?.label ?? String(valor);
         if (meta.tipo === 'fecha') {
           const fecha = valor instanceof Date ? valor : new Date(String(valor));
-          return Number.isNaN(fecha.getTime()) ? String(valor) : fecha.toLocaleDateString('es-EC');
+          return Number.isNaN(fecha.getTime()) ? String(valor) : fecha;
         }
         return typeof valor === 'number' ? valor : String(valor);
       }),
     );
 
-    const hoja = XLSX.utils.aoa_to_sheet([headers, ...filas]);
+    const hoja = XLSX.utils.aoa_to_sheet([headers, ...filas], { cellDates: true });
+    const columnasFecha = columnas.map((col) => (col.columnDef.meta as ColumnMeta).tipo === 'fecha');
+    aplicarFormatoHoja(hoja, headers, filas, columnasFecha);
+
     const libro = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(libro, hoja, modulo.slice(0, 31));
     XLSX.writeFile(libro, `${modulo}.xlsx`);

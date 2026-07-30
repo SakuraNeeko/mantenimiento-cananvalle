@@ -70,7 +70,7 @@ export function EventoForm({
                   ))}
                 </SelectContent>
               </Select>
-              {opciones.length === 0 ? <p className="text-2xs text-muted-foreground">No hay activos de clase "Biomédico" registrados en Activos.</p> : null}
+              {opciones.length === 0 ? <p className="text-2xs text-muted-foreground">No hay activos de clase &quot;Biomédico&quot; registrados en Activos.</p> : null}
             </div>
 
             <div className="space-y-1">

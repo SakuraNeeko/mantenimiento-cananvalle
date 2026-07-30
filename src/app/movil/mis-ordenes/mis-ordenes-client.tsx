@@ -23,6 +23,8 @@ export function MisOrdenesClient({ ordenesIniciales }: { ordenesIniciales: Orden
     if (ordenesIniciales.length > 0 || navigator.onLine) {
       void dexie.ordenes.bulkPut(ordenesIniciales);
     }
+    // `navigator.onLine` no existe en SSR: solo puede leerse tras montar, suscrito a IndexedDB (sistema externo).
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setSinConexion(!navigator.onLine);
 
     const sub = liveQuery(() => dexie.ordenes.toArray()).subscribe({

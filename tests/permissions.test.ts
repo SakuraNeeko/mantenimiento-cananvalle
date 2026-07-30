@@ -26,8 +26,13 @@ describe('catálogo de permisos', () => {
   });
 
   it('AUDITOR no tiene ningún permiso de escritura sensible', () => {
-    const sensiblesDeAuditor = ROLE_MATRIX.AUDITOR.filter(isSensitive);
-    expect(sensiblesDeAuditor).toEqual([]);
+    // `sensible` marca cualquier permiso que exige re-confirmación + auditoría CRITICO — incluye
+    // permisos de solo LECTURA de datos delicados (ver costos, ver tarifas), que un auditor de
+    // "consulta todo sin capacidad de escritura" sí debe tener. Lo que este test verifica de
+    // verdad es que no tenga ninguno de ESCRITURA (gestionar/eliminar/editar/activar/confirmar/
+    // ajustar/anular/aprobar/importar…) — un `.ver` sensible no cuenta como escritura.
+    const sensiblesDeEscritura = ROLE_MATRIX.AUDITOR.filter(isSensitive).filter((p) => !p.endsWith('.ver'));
+    expect(sensiblesDeEscritura).toEqual([]);
   });
 
   it('SOLIC solo alcanza solicitudes y consulta de activos', () => {

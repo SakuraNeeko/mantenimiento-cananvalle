@@ -144,7 +144,7 @@ export function PlanForm({
                 </Select>
               </div>
               <CampoSelect label="Ubicación" valor={form.watch('locationFiltro')} onChange={(v) => form.setValue('locationFiltro', v)} opciones={opciones.locations} />
-              <p className="col-span-3 text-2xs text-muted-foreground">Los filtros se combinan entre sí (Y lógico). Deja "Cualquiera" el que no quieras restringir.</p>
+              <p className="col-span-3 text-2xs text-muted-foreground">Los filtros se combinan entre sí (Y lógico). Deja &quot;Cualquiera&quot; el que no quieras restringir.</p>
             </div>
           )}
 

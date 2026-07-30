@@ -4,7 +4,7 @@ import { alias } from 'drizzle-orm/pg-core';
 import { and, eq } from 'drizzle-orm';
 import { db } from '@/db';
 import { assets, locations, serviceRequests, sites, users, workTypes } from '@/db/schema';
-import { hasPermission, requirePermission } from '@/lib/permissions';
+import { assertSiteAccess, hasPermission, requirePermission } from '@/lib/permissions';
 import { getCurrentTenant } from '@/lib/tenant';
 import { PageHeader } from '@/components/layout/page-header';
 import { obtenerNotas, obtenerOpcionesSolicitud, obtenerResponsablesDisponibles } from '../actions';
@@ -48,6 +48,7 @@ export default async function SolicitudDetallePage({ params }: { params: Promise
       causaRechazo: serviceRequests.causaRechazo,
       calificacion: serviceRequests.calificacion,
       comentarioCalificacion: serviceRequests.comentarioCalificacion,
+      siteId: serviceRequests.siteId,
     })
     .from(serviceRequests)
     .innerJoin(solicitantes, eq(solicitantes.id, serviceRequests.solicitanteUserId))
@@ -59,6 +60,9 @@ export default async function SolicitudDetallePage({ params }: { params: Promise
     .where(and(eq(serviceRequests.id, id), eq(serviceRequests.tenantId, tenant.id)))
     .limit(1);
   if (!sr) notFound();
+  // Es tu propia solicitud (o la tienes asignada): siempre puedes verla, sin importar la sede — igual que en el listado.
+  const esTuya = sr.solicitanteUserId === session.user.id || sr.responsableUserId === session.user.id;
+  if (!esTuya) assertSiteAccess(session, sr.siteId ?? null);
 
   const [notas, opciones] = await Promise.all([obtenerNotas(id, false), obtenerOpcionesSolicitud().catch(() => null)]);
   const responsablesDisponibles = hasPermission(session, 'solicitudes.asignar') ? await obtenerResponsablesDisponibles() : [];

@@ -2,9 +2,10 @@
 
 import { useTheme } from 'next-themes';
 import Link from 'next/link';
-import { LogOut, Menu, MessageSquareWarning, Moon, Search, Smartphone, Sun, User } from 'lucide-react';
+import { LogOut, Menu, MessageSquareWarning, Moon, Smartphone, Sun, User } from 'lucide-react';
 import { NotificacionesMenu } from './notificaciones-menu';
 import { SedeSelector } from './sede-selector';
+import { GlobalSearch } from './global-search';
 import { useSidebarMobile } from './sidebar-mobile-context';
 import { signOut } from 'next-auth/react';
 import { Button } from '@/components/ui/button';
@@ -45,17 +46,7 @@ export function Topbar({ nombre, email, roles, sedes, sedeActual, mostrarTodasLa
         <span className="hidden text-xs font-medium text-muted-foreground sm:inline">{sede?.nombre ?? ''}</span>
       )}
 
-      <Button
-        variant="outline"
-        size="sm"
-        className="ml-2 hidden min-w-[16rem] justify-start text-muted-foreground md:inline-flex"
-        title="Buscador global (Fase 2)"
-        disabled
-      >
-        <Search aria-hidden />
-        Buscar activos, OT, materiales…
-        <kbd className="ml-auto font-codigo text-2xs">⌘K</kbd>
-      </Button>
+      <GlobalSearch />
 
       <div className="ml-auto flex items-center gap-1">
         <NotificacionesMenu sinLeerInicial={notificacionesSinLeer} />

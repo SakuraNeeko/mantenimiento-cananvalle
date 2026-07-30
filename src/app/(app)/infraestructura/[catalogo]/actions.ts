@@ -225,7 +225,7 @@ export async function obtenerOpciones(slug: string): Promise<Record<string, { va
 /* EXCEL — IMPORTAR / EXPORTAR (P-05)                                         */
 /* -------------------------------------------------------------------------- */
 
-export type FilaExportada = (string | number)[];
+export type FilaExportada = (string | number | Date)[];
 
 /** Encabezados + filas ya formateadas para volcar directo a una hoja de cálculo. */
 export async function exportarFilas(
@@ -258,6 +258,10 @@ export async function exportarFilas(
       if (campo.tipo === 'enum') return campo.opciones?.find((o) => o.value === v)?.label ?? '';
       if (campo.tipo === 'booleano') return v ? 'Sí' : 'No';
       if (v === null || v === undefined) return '';
+      if (campo.tipo === 'fecha') {
+        const fecha = v instanceof Date ? v : new Date(String(v));
+        if (!Number.isNaN(fecha.getTime())) return fecha;
+      }
       return typeof v === 'number' ? v : String(v);
     }),
   );

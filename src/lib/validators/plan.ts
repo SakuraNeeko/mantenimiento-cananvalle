@@ -2,8 +2,6 @@ import { z } from 'zod';
 
 const ALCANCES = ['ACTIVO_UNICO', 'GRUPO'] as const;
 const PRIORIDADES = ['BAJA', 'MEDIA', 'ALTA', 'URGENTE'] as const;
-const CLASES = ['EQUIPO', 'VEHICULO', 'INFRAESTRUCTURA', 'TI', 'BIOMEDICO', 'HERRAMIENTA'] as const;
-const CRITICIDADES = ['A', 'B', 'C'] as const;
 
 export const ALCANCE_LABELS: Record<(typeof ALCANCES)[number], string> = {
   ACTIVO_UNICO: 'Un solo activo',
@@ -17,14 +15,14 @@ export const PRIORIDAD_LABELS: Record<(typeof PRIORIDADES)[number], string> = {
   URGENTE: 'Urgente',
 };
 
-export const CLASE_LABELS: Record<(typeof CLASES)[number], string> = {
+export const CLASE_LABELS = {
   EQUIPO: 'Equipo',
   VEHICULO: 'Vehículo',
   INFRAESTRUCTURA: 'Infraestructura',
   TI: 'TI',
   BIOMEDICO: 'Biomédico',
   HERRAMIENTA: 'Herramienta',
-};
+} as const;
 
 const campoOpcional = z
   .string()

@@ -19,6 +19,7 @@ export const obtenerActivoDetalle = cache(async (id: string) => {
     .select({
       asset: assets,
       ubicacion: locations.nombre,
+      ubicacionSiteId: locations.siteId,
       centroCosto: costCenters.nombre,
       centroResponsable: responsibleCenters.nombre,
       proveedor: parties.nombre,

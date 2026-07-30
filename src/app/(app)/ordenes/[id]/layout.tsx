@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation';
-import { hasPermission, requirePermission } from '@/lib/permissions';
+import { assertSiteAccess, hasPermission, requirePermission } from '@/lib/permissions';
 import { PageHeader } from '@/components/layout/page-header';
 import { Badge } from '@/components/ui/badge';
 import { ESTADO_LABELS, ESTADO_VARIANT, PRIORIDAD_LABELS } from '@/lib/validators/orden';
@@ -26,6 +26,11 @@ export default async function OrdenLayout({ children, params }: { children: Reac
   if (!detalle) notFound();
 
   const { orden } = detalle;
+  // Oculto en el menú no basta (§8): bloquea también la URL directa a una OT de una sede que no te corresponde.
+  // Excepto si es tu propia OT asignada — un técnico PROPIO siempre puede ver lo suyo, sin importar la sede.
+  if (orden.responsablePrincipalUserId !== session.user.id) {
+    assertSiteAccess(session, detalle.locationSiteId ?? null);
+  }
 
   const puedeCrear = hasPermission(session, 'ordenes.crear');
   const puedeCerrar = hasPermission(session, 'ordenes.cerrar');

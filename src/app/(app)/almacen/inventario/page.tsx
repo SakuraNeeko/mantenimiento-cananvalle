@@ -1,9 +1,9 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { and, desc, eq } from 'drizzle-orm';
+import { and, desc, eq, inArray } from 'drizzle-orm';
 import { db } from '@/db';
 import { physicalInventories, warehouses } from '@/db/schema';
-import { hasPermission, requirePermission } from '@/lib/permissions';
+import { hasPermission, requirePermission, scopeDescriptor } from '@/lib/permissions';
 import { getCurrentTenant } from '@/lib/tenant';
 import { PageHeader } from '@/components/layout/page-header';
 import { Button } from '@/components/ui/button';
@@ -18,12 +18,16 @@ export const metadata: Metadata = { title: 'Inventario físico' };
 export default async function InventarioPage() {
   const session = await requirePermission('almacen.inventario.ejecutar');
   const tenant = await getCurrentTenant();
+  const { scope, siteIds } = scopeDescriptor(session);
+
+  // Sin alcance TENANT, una toma solo se ve si el almacén pertenece a una sede asignada al usuario.
+  const alcance = scope === 'TENANT' ? undefined : inArray(warehouses.siteId, siteIds.length > 0 ? siteIds : ['—']);
 
   const tomas = await db
     .select({ id: physicalInventories.id, fecha: physicalInventories.fecha, estado: physicalInventories.estado, warehouseNombre: warehouses.nombre })
     .from(physicalInventories)
     .innerJoin(warehouses, eq(warehouses.id, physicalInventories.warehouseId))
-    .where(and(eq(physicalInventories.tenantId, tenant.id)))
+    .where(and(eq(physicalInventories.tenantId, tenant.id), alcance))
     .orderBy(desc(physicalInventories.fecha))
     .limit(100);
 

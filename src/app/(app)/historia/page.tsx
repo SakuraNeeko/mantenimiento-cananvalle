@@ -1,8 +1,8 @@
 import type { Metadata } from 'next';
-import { and, eq, sql } from 'drizzle-orm';
+import { and, eq, inArray, sql } from 'drizzle-orm';
 import { db } from '@/db';
-import { woHistory } from '@/db/schema';
-import { hasPermission, requirePermission } from '@/lib/permissions';
+import { assets, locations, woHistory } from '@/db/schema';
+import { hasPermission, requirePermission, scopeDescriptor } from '@/lib/permissions';
 import { getCurrentTenant } from '@/lib/tenant';
 import { buildLimitOffset, buildOrderBy, buildWhere } from '@/lib/query-builder';
 import { parseTableQuery } from '@/components/data-table/types';
@@ -24,8 +24,12 @@ export default async function HistoriaPage({ searchParams }: { searchParams: Pro
   const session = await requirePermission('historia.ver');
   const tenant = await getCurrentTenant();
   const query = parseTableQuery(await searchParams);
+  const { scope, siteIds } = scopeDescriptor(session);
 
-  const where = and(eq(woHistory.tenantId, tenant.id), buildWhere(COLUMNAS, query.filters, query.search, ['consecutivo', 'assetNombre']));
+  // Sin alcance TENANT, un registro de historia solo se ve si la ubicación de su activo pertenece a una sede asignada al usuario.
+  const alcance = scope === 'TENANT' ? undefined : inArray(locations.siteId, siteIds.length > 0 ? siteIds : ['—']);
+
+  const where = and(eq(woHistory.tenantId, tenant.id), alcance, buildWhere(COLUMNAS, query.filters, query.search, ['consecutivo', 'assetNombre']));
   const { limit, offset } = buildLimitOffset(query);
 
   const [rows, totalRow] = await Promise.all([
@@ -41,11 +45,18 @@ export default async function HistoriaPage({ searchParams }: { searchParams: Pro
         causaCierreNombre: woHistory.causaCierreNombre,
       })
       .from(woHistory)
+      .leftJoin(assets, eq(assets.id, woHistory.assetId))
+      .leftJoin(locations, eq(locations.id, assets.locationId))
       .where(where)
       .orderBy(...buildOrderBy(COLUMNAS, query.sort, woHistory.fechaFinReal))
       .limit(limit)
       .offset(offset),
-    db.select({ n: sql<number>`count(*)::int` }).from(woHistory).where(where),
+    db
+      .select({ n: sql<number>`count(*)::int` })
+      .from(woHistory)
+      .leftJoin(assets, eq(assets.id, woHistory.assetId))
+      .leftJoin(locations, eq(locations.id, assets.locationId))
+      .where(where),
   ]);
 
   const data = { rows: rows as HistoriaRow[], total: totalRow[0]?.n ?? 0, page: query.page, pageSize: query.pageSize };

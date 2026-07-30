@@ -1,8 +1,8 @@
 import type { Metadata } from 'next';
-import { and, eq, sql } from 'drizzle-orm';
+import { and, eq, inArray, sql } from 'drizzle-orm';
 import { db } from '@/db';
-import { adverseEvents, assets } from '@/db/schema';
-import { hasPermission, requirePermission } from '@/lib/permissions';
+import { adverseEvents, assets, locations } from '@/db/schema';
+import { hasPermission, requirePermission, scopeDescriptor } from '@/lib/permissions';
 import { getCurrentTenant } from '@/lib/tenant';
 import { requireModulo } from '@/lib/tenant/modules';
 import { buildLimitOffset, buildOrderBy, buildWhere } from '@/lib/query-builder';
@@ -25,8 +25,12 @@ export default async function TecnovigilanciaPage({ searchParams }: { searchPara
   const tenant = await getCurrentTenant();
   await requireModulo(tenant.id, 'tecnovigilancia');
   const query = parseTableQuery(await searchParams);
+  const { scope, siteIds } = scopeDescriptor(session);
 
-  const where = and(eq(adverseEvents.tenantId, tenant.id), buildWhere(COLUMNAS, query.filters, query.search, ['descripcion']));
+  // Sin alcance TENANT, un evento solo se ve si la ubicación de su activo pertenece a una sede asignada al usuario.
+  const alcance = scope === 'TENANT' ? undefined : inArray(locations.siteId, siteIds.length > 0 ? siteIds : ['—']);
+
+  const where = and(eq(adverseEvents.tenantId, tenant.id), alcance, buildWhere(COLUMNAS, query.filters, query.search, ['descripcion']));
   const { limit, offset } = buildLimitOffset(query);
 
   const [rows, totalRow] = await Promise.all([
@@ -43,11 +47,17 @@ export default async function TecnovigilanciaPage({ searchParams }: { searchPara
       })
       .from(adverseEvents)
       .innerJoin(assets, eq(assets.id, adverseEvents.assetId))
+      .leftJoin(locations, eq(locations.id, assets.locationId))
       .where(where)
       .orderBy(...buildOrderBy(COLUMNAS, query.sort, adverseEvents.fecha))
       .limit(limit)
       .offset(offset),
-    db.select({ n: sql<number>`count(*)::int` }).from(adverseEvents).where(where),
+    db
+      .select({ n: sql<number>`count(*)::int` })
+      .from(adverseEvents)
+      .innerJoin(assets, eq(assets.id, adverseEvents.assetId))
+      .leftJoin(locations, eq(locations.id, assets.locationId))
+      .where(where),
   ]);
 
   const data = { rows: rows as EventoRow[], total: totalRow[0]?.n ?? 0, page: query.page, pageSize: query.pageSize };

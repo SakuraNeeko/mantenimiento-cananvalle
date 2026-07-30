@@ -1,8 +1,8 @@
 import type { Metadata } from 'next';
-import { and, eq, isNull, sql } from 'drizzle-orm';
+import { and, eq, inArray, isNull, sql } from 'drizzle-orm';
 import { db } from '@/db';
 import { assets, costCenters, locations } from '@/db/schema';
-import { hasPermission, requirePermission } from '@/lib/permissions';
+import { hasPermission, requirePermission, scopeDescriptor } from '@/lib/permissions';
 import { getCurrentTenant } from '@/lib/tenant';
 import { buildLimitOffset, buildOrderBy, buildWhere } from '@/lib/query-builder';
 import { parseTableQuery } from '@/components/data-table/types';
@@ -29,10 +29,15 @@ export default async function ActivosPage({
   const session = await requirePermission('activos.ver');
   const tenant = await getCurrentTenant();
   const query = parseTableQuery(await searchParams);
+  const { scope, siteIds } = scopeDescriptor(session);
+
+  // Sin alcance TENANT, un activo solo se ve si su ubicación pertenece a una sede asignada al usuario.
+  const alcance = scope === 'TENANT' ? undefined : inArray(locations.siteId, siteIds.length > 0 ? siteIds : ['—']);
 
   const where = and(
     eq(assets.tenantId, tenant.id),
     isNull(assets.deletedAt),
+    alcance,
     buildWhere(COLUMNAS, query.filters, query.search, ['codigo', 'nombre', 'fabricante', 'modelo', 'serie']),
   );
   const { limit, offset } = buildLimitOffset(query);
@@ -57,7 +62,7 @@ export default async function ActivosPage({
       .orderBy(...buildOrderBy(COLUMNAS, query.sort, assets.nombre))
       .limit(limit)
       .offset(offset),
-    db.select({ n: sql<number>`count(*)::int` }).from(assets).where(where),
+    db.select({ n: sql<number>`count(*)::int` }).from(assets).leftJoin(locations, eq(locations.id, assets.locationId)).where(where),
   ]);
 
   const data = {

@@ -33,6 +33,8 @@ export function RendimientoClient({ assets, assetIdInicial }: { assets: { value:
   }, []);
 
   React.useEffect(() => {
+    // Carga única al montar: no hay prop de la que derivar esto, es un fetch de arranque de página.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (assetIdInicial) cargar(assetIdInicial);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

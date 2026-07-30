@@ -20,4 +20,15 @@ export function fmtRelative(value: Date | string | null | undefined, tz = DEFAUL
   return formatDistanceToNow(toZonedTime(new Date(value), tz), { addSuffix: true, locale: es });
 }
 
+/** Ventana [hoy - N días, hoy]. Usa la hora real de ejecución: no es apta para un render de cliente, solo para código server-only (Server Components, Server Actions). */
+export function hace(dias: number): Date {
+  return new Date(Date.now() - dias * 24 * 3600 * 1000);
+}
+
+/** Primer día del mes en curso (UTC). Mismo caso de uso que [[hace]]. */
+export function inicioDeMesActual(): Date {
+  const ahora = new Date();
+  return new Date(Date.UTC(ahora.getUTCFullYear(), ahora.getUTCMonth(), 1));
+}
+
 export { format };

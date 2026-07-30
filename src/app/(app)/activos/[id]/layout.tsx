@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { ChevronRight } from 'lucide-react';
-import { requirePermission } from '@/lib/permissions';
+import { assertSiteAccess, requirePermission } from '@/lib/permissions';
 import { PageHeader } from '@/components/layout/page-header';
 import { Badge } from '@/components/ui/badge';
 import { ESTADO_LABELS, CLASE_LABELS } from '@/lib/validators/activo';
@@ -28,11 +28,13 @@ const ESTADO_VARIANT: Record<string, 'success' | 'warning' | 'destructive' | 'ne
 
 export default async function ActivoLayout({ children, params }: { children: React.ReactNode; params: Promise<{ id: string }> }) {
   const { id } = await params;
-  await requirePermission('activos.ver');
+  const session = await requirePermission('activos.ver');
   const detalle = await obtenerActivoDetalle(id);
   if (!detalle) notFound();
 
   const { asset } = detalle;
+  // Oculto en el menú no basta (§8): bloquea también la URL directa a un activo de una sede que no te corresponde.
+  assertSiteAccess(session, detalle.ubicacionSiteId ?? null);
 
   return (
     <div className="flex h-full flex-col gap-3">

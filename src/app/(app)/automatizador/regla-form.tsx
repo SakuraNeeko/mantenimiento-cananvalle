@@ -19,7 +19,6 @@ import {
   TIPOS_ACCION,
   type AccionRegla,
   type CondicionSimple,
-  type CondicionesRegla,
 } from '@/lib/automatizador/reglas';
 import { crearRegla, actualizarRegla, obtenerUsuariosParaAutomatizador, type ReglaFormValues } from './actions';
 
