@@ -89,7 +89,7 @@ export const assetEstadoEnum = pgEnum('asset_estado', ['OPERATIVO', 'EN_MANTENIM
 export const assetDocumentoTipoEnum = pgEnum('asset_documento_tipo', ['MANUAL', 'PLANO', 'CERTIFICADO', 'GARANTIA', 'OTRO']);
 
 /** Origen de una lectura de medidor. */
-export const meterReadingOrigenEnum = pgEnum('meter_reading_origen', ['MANUAL', 'MOVIL', 'API']);
+export const meterReadingOrigenEnum = pgEnum('meter_reading_origen', ['MANUAL', 'MOVIL', 'API', 'COMBUSTIBLE']);
 
 /* -------------------------------------------------------------------------- */
 /* FASE 4 — ALMACÉN Y KÁRDEX                                                  */

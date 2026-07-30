@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent } from '@/components/ui/card';
+import { etiquetaCampoLectura } from '@/lib/combustibles/medidor';
 import type { OpcionesCombustible, RegistroCombustibleValues } from './actions';
 
 const SIN_VALOR = '__vacio__';
@@ -53,6 +54,9 @@ export function CombustibleForm({
   const cantidad = Number(form.watch('cantidad') || 0);
   const costoUnitario = Number(form.watch('costoUnitario') || 0);
   const costoTotal = cantidad * costoUnitario;
+
+  const assetSeleccionado = opciones.assets.find((a) => a.value === form.watch('assetId'));
+  const etiquetaLectura = etiquetaCampoLectura(assetSeleccionado?.tipoLectura ?? null, assetSeleccionado?.simboloUom ?? null);
 
   async function onSubmit(valores: RegistroCombustibleValues) {
     await onGuardado(valores);
@@ -110,8 +114,13 @@ export function CombustibleForm({
               <p className="text-sm font-medium">{costoTotal.toFixed(2)}</p>
             </div>
             <div className="space-y-1">
-              <Label htmlFor="lectura">Lectura de odómetro / horómetro</Label>
+              <Label htmlFor="lectura">{etiquetaLectura}</Label>
               <Input id="lectura" {...form.register('lectura')} placeholder="Opcional, para calcular rendimiento" />
+              {assetSeleccionado?.tipoLectura && !valoresPrevios ? (
+                <p className="text-2xs text-muted-foreground">Alimenta el medidor del activo en Infraestructura.</p>
+              ) : assetSeleccionado && !assetSeleccionado.tipoLectura ? (
+                <p className="text-2xs text-muted-foreground">Este activo no tiene un medidor configurado — la unidad queda a tu criterio.</p>
+              ) : null}
             </div>
             <div className="space-y-1">
               <Label htmlFor="numeroFactura">N.º de factura</Label>

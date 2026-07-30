@@ -13,11 +13,18 @@ import { fmtDate } from '@/lib/datetime';
 import { formatMoney } from '@/lib/utils';
 import { obtenerRendimientoAsset } from '../actions';
 import type { RegistroConRendimiento } from '@/lib/combustibles/rendimiento';
+import { unidadLectura, type TipoLecturaMedidor } from '@/lib/combustibles/medidor';
 
-export function RendimientoClient({ assets, assetIdInicial }: { assets: { value: string; label: string; codigo: string }[]; assetIdInicial: string }) {
+type AssetOption = { value: string; label: string; codigo: string; tipoLectura: TipoLecturaMedidor | null; simboloUom: string | null };
+
+export function RendimientoClient({ assets, assetIdInicial }: { assets: AssetOption[]; assetIdInicial: string }) {
   const [assetId, setAssetId] = React.useState(assetIdInicial);
   const [registros, setRegistros] = React.useState<RegistroConRendimiento[] | null>(null);
   const [cargando, setCargando] = React.useState(false);
+
+  const assetSeleccionado = assets.find((a) => a.value === assetId);
+  const unidad = assetSeleccionado?.tipoLectura ? unidadLectura(assetSeleccionado.tipoLectura, assetSeleccionado.simboloUom) : null;
+  const etiquetaRendimiento = unidad ? `Rendimiento (${unidad}/gal)` : 'Rendimiento';
 
   const cargar = React.useCallback(async (id: string) => {
     if (!id) return;
@@ -85,8 +92,8 @@ export function RendimientoClient({ assets, assetIdInicial }: { assets: { value:
                   <TableHead>Fecha</TableHead>
                   <TableHead className="text-right">Cantidad</TableHead>
                   <TableHead className="text-right">Costo</TableHead>
-                  <TableHead className="text-right">Lectura</TableHead>
-                  <TableHead className="text-right">Rendimiento</TableHead>
+                  <TableHead className="text-right">Lectura{unidad ? ` (${unidad})` : ''}</TableHead>
+                  <TableHead className="text-right">{etiquetaRendimiento}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>

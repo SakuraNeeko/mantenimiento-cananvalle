@@ -85,6 +85,13 @@
       "when": 1785383109657,
       "tag": "0011_fase12_automatizador_api",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1785426950333,
+      "tag": "0012_fearless_the_enforcers",
+      "breakpoints": true
     }
   ]
 }
