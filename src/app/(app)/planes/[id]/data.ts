@@ -1,7 +1,7 @@
 import { cache } from 'react';
 import { and, eq } from 'drizzle-orm';
 import { db } from '@/db';
-import { assets, locations, maintenancePlans, maintenanceTypes, planResources, planTasks, planTriggers, responsibles, workTypes } from '@/db/schema';
+import { assetClasses, assets, locations, maintenancePlans, maintenanceTypes, planResources, planTasks, planTriggers, responsibles, workTypes } from '@/db/schema';
 import { getCurrentTenant } from '@/lib/tenant';
 
 export const obtenerPlanDetalle = cache(async (id: string) => {
@@ -16,6 +16,7 @@ export const obtenerPlanDetalle = cache(async (id: string) => {
       workTypeNombre: workTypes.nombre,
       locationFiltroNombre: locations.nombre,
       responsableNombre: responsibles.nombre,
+      claseFiltroNombre: assetClasses.nombre,
     })
     .from(maintenancePlans)
     .leftJoin(assets, eq(assets.id, maintenancePlans.assetId))
@@ -23,6 +24,7 @@ export const obtenerPlanDetalle = cache(async (id: string) => {
     .leftJoin(workTypes, eq(workTypes.id, maintenancePlans.workTypeId))
     .leftJoin(locations, eq(locations.id, maintenancePlans.locationFiltro))
     .leftJoin(responsibles, eq(responsibles.id, maintenancePlans.responsibleDefaultId))
+    .leftJoin(assetClasses, eq(assetClasses.id, maintenancePlans.claseFiltroId))
     .where(and(eq(maintenancePlans.id, id), eq(maintenancePlans.tenantId, tenant.id)))
     .limit(1);
 

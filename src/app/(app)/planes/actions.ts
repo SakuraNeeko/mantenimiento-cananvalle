@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache';
 import { and, eq, isNull } from 'drizzle-orm';
 import { db } from '@/db';
 import {
+  assetClasses,
   assets,
   locations,
   maintenancePlans,
@@ -28,7 +29,7 @@ function datosDeFormulario(data: PlanFormValues) {
     workTypeId: data.workTypeId ?? null,
     alcance: data.alcance,
     assetId: data.alcance === 'ACTIVO_UNICO' ? (data.assetId ?? null) : null,
-    claseFiltro: data.alcance === 'GRUPO' ? ((data.claseFiltro as never) ?? null) : null,
+    claseFiltroId: data.alcance === 'GRUPO' ? (data.claseFiltroId ?? null) : null,
     criticidadFiltro: data.alcance === 'GRUPO' ? ((data.criticidadFiltro as never) ?? null) : null,
     locationFiltro: data.alcance === 'GRUPO' ? (data.locationFiltro ?? null) : null,
     responsibleDefaultId: data.responsibleDefaultId ?? null,
@@ -126,6 +127,7 @@ export async function desactivarPlan(id: string): Promise<AccionResultado> {
 }
 
 export type OpcionesPlan = {
+  clases: { value: string; label: string }[];
   maintenanceTypes: { value: string; label: string }[];
   workTypes: { value: string; label: string }[];
   assets: { value: string; label: string }[];
@@ -138,7 +140,8 @@ export async function obtenerOpcionesPlan(): Promise<OpcionesPlan> {
   const tenant = await getCurrentTenant();
   const activo = <T extends { tenantId: unknown; activo: unknown; deletedAt: unknown }>(t: T) => and(eq(t.tenantId as never, tenant.id), eq(t.activo as never, true), isNull(t.deletedAt as never));
 
-  const [mts, wts, ast, locs, resp] = await Promise.all([
+  const [cls, mts, wts, ast, locs, resp] = await Promise.all([
+    db.select({ value: assetClasses.id, label: assetClasses.nombre }).from(assetClasses).where(activo(assetClasses)).orderBy(assetClasses.nombre),
     db.select({ value: maintenanceTypes.id, label: maintenanceTypes.nombre }).from(maintenanceTypes).where(activo(maintenanceTypes)).orderBy(maintenanceTypes.nombre),
     db.select({ value: workTypes.id, label: workTypes.nombre }).from(workTypes).where(activo(workTypes)).orderBy(workTypes.nombre),
     db.select({ value: assets.id, label: assets.nombre }).from(assets).where(and(eq(assets.tenantId, tenant.id), isNull(assets.deletedAt))).orderBy(assets.nombre),
@@ -146,7 +149,7 @@ export async function obtenerOpcionesPlan(): Promise<OpcionesPlan> {
     db.select({ value: responsibles.id, label: responsibles.nombre }).from(responsibles).where(activo(responsibles)).orderBy(responsibles.nombre),
   ]);
 
-  return { maintenanceTypes: mts, workTypes: wts, assets: ast, locations: locs, responsables: resp };
+  return { clases: cls, maintenanceTypes: mts, workTypes: wts, assets: ast, locations: locs, responsables: resp };
 }
 
 export async function obtenerHistorialGeneracion(planId: string) {

@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { and, eq, isNull } from 'drizzle-orm';
 import { db } from '@/db';
-import { assets } from '@/db/schema';
+import { assetClasses, assets } from '@/db/schema';
 import { autenticarApiKey, registrarUsoApiKey, tieneAlcance } from '@/lib/api-publica/auth';
 
 export const dynamic = 'force-dynamic';
@@ -24,8 +24,9 @@ export async function GET(request: Request) {
   const codigo = searchParams.get('codigo');
 
   const filas = await db
-    .select({ id: assets.id, codigo: assets.codigo, nombre: assets.nombre, clase: assets.clase, criticidad: assets.criticidad, estado: assets.estado })
+    .select({ id: assets.id, codigo: assets.codigo, nombre: assets.nombre, clase: assetClasses.nombre, criticidad: assets.criticidad, estado: assets.estado })
     .from(assets)
+    .leftJoin(assetClasses, eq(assetClasses.id, assets.claseId))
     .where(and(eq(assets.tenantId, contexto.tenantId), isNull(assets.deletedAt), codigo ? eq(assets.codigo, codigo) : undefined))
     .limit(limit);
 

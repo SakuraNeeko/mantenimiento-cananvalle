@@ -2,7 +2,7 @@ import { cache } from 'react';
 import { and, eq, isNull } from 'drizzle-orm';
 import { alias } from 'drizzle-orm/pg-core';
 import { db } from '@/db';
-import { assets, contracts, costCenters, locations, parties, responsibleCenters } from '@/db/schema';
+import { assetClasses, assets, contracts, costCenters, locations, parties, responsibleCenters } from '@/db/schema';
 import { getCurrentTenant } from '@/lib/tenant';
 
 const padres = alias(assets, 'padres');
@@ -18,6 +18,8 @@ export const obtenerActivoDetalle = cache(async (id: string) => {
   const [fila] = await db
     .select({
       asset: assets,
+      clase: assetClasses.nombre,
+      claseCodigo: assetClasses.codigo,
       ubicacion: locations.nombre,
       ubicacionSiteId: locations.siteId,
       centroCosto: costCenters.nombre,
@@ -29,6 +31,7 @@ export const obtenerActivoDetalle = cache(async (id: string) => {
       padreNombre: padres.nombre,
     })
     .from(assets)
+    .leftJoin(assetClasses, eq(assetClasses.id, assets.claseId))
     .leftJoin(locations, eq(locations.id, assets.locationId))
     .leftJoin(costCenters, eq(costCenters.id, assets.costCenterId))
     .leftJoin(responsibleCenters, eq(responsibleCenters.id, assets.responsibleCenterId))

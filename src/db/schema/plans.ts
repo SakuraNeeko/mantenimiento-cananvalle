@@ -2,7 +2,6 @@ import { boolean, date, index, integer, numeric, pgTable, text, timestamp, uniqu
 import { sql } from 'drizzle-orm';
 import { auditColumns, createdColumns } from './_shared';
 import {
-  assetClaseEnum,
   criticalityEnum,
   planAlcanceEnum,
   planGenerationResultadoEnum,
@@ -14,7 +13,7 @@ import {
   woTaskTipoRespuestaEnum,
 } from './enums';
 import { tenants } from './core';
-import { locations, maintenanceTypes, magnitudes, meters, responsibles, trades, workTypes } from './infra';
+import { assetClasses, locations, maintenanceTypes, magnitudes, meters, responsibles, trades, workTypes } from './infra';
 import { assets } from './assets';
 import { materials } from './inventory';
 import { workOrders } from './work-orders';
@@ -41,7 +40,7 @@ export const maintenancePlans = pgTable(
     /** Solo si alcance = ACTIVO_UNICO. */
     assetId: uuid('asset_id').references(() => assets.id, { onDelete: 'cascade' }),
     /** Filtros combinables (AND) solo si alcance = GRUPO; NULL en cada uno = "cualquiera". */
-    claseFiltro: assetClaseEnum('clase_filtro'),
+    claseFiltroId: uuid('clase_filtro_id').references(() => assetClasses.id, { onDelete: 'set null' }),
     criticidadFiltro: criticalityEnum('criticidad_filtro'),
     locationFiltro: uuid('location_filtro').references(() => locations.id, { onDelete: 'set null' }),
     responsibleDefaultId: uuid('responsible_default_id').references(() => responsibles.id, { onDelete: 'set null' }),

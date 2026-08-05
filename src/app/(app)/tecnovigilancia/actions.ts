@@ -3,7 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { and, eq, isNull } from 'drizzle-orm';
 import { db } from '@/db';
-import { adverseEvents, assets } from '@/db/schema';
+import { adverseEvents, assetClasses, assets } from '@/db/schema';
 import { requirePermission } from '@/lib/permissions';
 import { getCurrentTenant } from '@/lib/tenant';
 import { requireModulo } from '@/lib/tenant/modules';
@@ -129,5 +129,10 @@ export async function marcarReportadoAutoridad(id: string, numeroReporte: string
 export async function obtenerOpcionesEvento() {
   await requirePermission('tecnovigilancia.registrar');
   const tenant = await getCurrentTenant();
-  return db.select({ value: assets.id, label: assets.nombre, codigo: assets.codigo }).from(assets).where(and(eq(assets.tenantId, tenant.id), eq(assets.clase, 'BIOMEDICO'), isNull(assets.deletedAt))).orderBy(assets.nombre);
+  return db
+    .select({ value: assets.id, label: assets.nombre, codigo: assets.codigo })
+    .from(assets)
+    .innerJoin(assetClasses, eq(assetClasses.id, assets.claseId))
+    .where(and(eq(assets.tenantId, tenant.id), eq(assetClasses.codigo, 'BIOMEDICO'), isNull(assets.deletedAt)))
+    .orderBy(assets.nombre);
 }

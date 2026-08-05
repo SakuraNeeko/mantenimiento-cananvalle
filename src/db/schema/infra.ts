@@ -59,6 +59,7 @@ function simpleCatalog(tableName: string) {
 /* -------------------------------------------------------------------------- */
 
 export const workTypes = simpleCatalog('work_types');
+export const assetClasses = simpleCatalog('asset_classes');
 export const maintenanceTypes = simpleCatalog('maintenance_types');
 export const activityTypes = simpleCatalog('activity_types');
 export const otherCostConcepts = simpleCatalog('other_cost_concepts');

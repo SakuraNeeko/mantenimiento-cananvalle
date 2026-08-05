@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { PlanForm } from '../plan-form';
 import { actualizarPlan, type OpcionesPlan } from '../actions';
-import { ALCANCE_LABELS, CLASE_LABELS } from '@/lib/validators/plan';
+import { ALCANCE_LABELS } from '@/lib/validators/plan';
 import type { PlanFormValues } from '@/lib/validators/plan';
 
 type Dato = { label: string; value: React.ReactNode };
@@ -43,7 +43,15 @@ export function PlanGeneralClient({
   planId: string;
   valoresPrevios: PlanFormValues;
   opciones: OpcionesPlan;
-  detalle: { assetNombre: string | null; assetCodigo: string | null; maintenanceTypeNombre: string | null; workTypeNombre: string | null; locationFiltroNombre: string | null; responsableNombre: string | null };
+  detalle: {
+    assetNombre: string | null;
+    assetCodigo: string | null;
+    maintenanceTypeNombre: string | null;
+    workTypeNombre: string | null;
+    locationFiltroNombre: string | null;
+    responsableNombre: string | null;
+    claseFiltroNombre: string | null;
+  };
   puedeEditar: boolean;
 }) {
   const router = useRouter();
@@ -90,7 +98,7 @@ export function PlanGeneralClient({
         datos={[
           { label: 'Tipo de alcance', value: ALCANCE_LABELS[v.alcance] },
           { label: 'Activo', value: v.alcance === 'ACTIVO_UNICO' ? (detalle.assetCodigo && detalle.assetNombre ? `${detalle.assetCodigo} — ${detalle.assetNombre}` : detalle.assetNombre) : null },
-          { label: 'Clase', value: v.alcance === 'GRUPO' && v.claseFiltro ? CLASE_LABELS[v.claseFiltro as keyof typeof CLASE_LABELS] : null },
+          { label: 'Clase', value: v.alcance === 'GRUPO' ? detalle.claseFiltroNombre : null },
           { label: 'Criticidad', value: v.alcance === 'GRUPO' ? v.criticidadFiltro : null },
           { label: 'Ubicación', value: v.alcance === 'GRUPO' ? detalle.locationFiltroNombre : null },
         ]}

@@ -8,13 +8,12 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent } from '@/components/ui/card';
-import { ALCANCE_LABELS, CLASE_LABELS, PRIORIDAD_LABELS, planBaseSchema, type PlanFormValues } from '@/lib/validators/plan';
+import { ALCANCE_LABELS, PRIORIDAD_LABELS, planBaseSchema, type PlanFormValues } from '@/lib/validators/plan';
 import type { OpcionesPlan } from './actions';
 
 const SIN_VALOR = '__vacio__';
 const CRITICIDADES = ['A', 'B', 'C'] as const;
 const CRITICIDAD_LABELS: Record<(typeof CRITICIDADES)[number], string> = { A: 'A — Crítico', B: 'B — Importante', C: 'C — Normal' };
-const CLASES = Object.keys(CLASE_LABELS) as (keyof typeof CLASE_LABELS)[];
 
 const VALORES_INICIALES: PlanFormValues = { codigo: '', nombre: '', alcance: 'ACTIVO_UNICO', prioridad: 'MEDIA' };
 
@@ -111,22 +110,7 @@ export function PlanForm({
             </>
           ) : (
             <div className="grid grid-cols-3 gap-3 rounded-[8px] border p-3">
-              <div className="space-y-1">
-                <Label>Clase</Label>
-                <Select value={form.watch('claseFiltro') || SIN_VALOR} onValueChange={(v) => form.setValue('claseFiltro', v === SIN_VALOR ? undefined : v)}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Cualquiera" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value={SIN_VALOR}>Cualquiera</SelectItem>
-                    {CLASES.map((c) => (
-                      <SelectItem key={c} value={c}>
-                        {CLASE_LABELS[c]}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+              <CampoSelect label="Clase" valor={form.watch('claseFiltroId')} onChange={(v) => form.setValue('claseFiltroId', v)} opciones={opciones.clases} />
               <div className="space-y-1">
                 <Label>Criticidad</Label>
                 <Select value={form.watch('criticidadFiltro') || SIN_VALOR} onValueChange={(v) => form.setValue('criticidadFiltro', v === SIN_VALOR ? undefined : v)}>

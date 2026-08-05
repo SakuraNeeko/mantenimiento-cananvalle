@@ -1,6 +1,7 @@
 import type { PgColumn, PgTable } from 'drizzle-orm/pg-core';
 import {
   activityTypes,
+  assetClasses,
   biomedicalCharacteristics,
   characteristics,
   contracts,
@@ -102,6 +103,16 @@ const LOCATIONS_REF: TablaReferenciable = { tabla: locations, id: locations.id, 
 
 export const CATALOGOS: CatalogoDef[] = [
   /* --- Planos, sin campos propios --------------------------------------- */
+  {
+    slug: 'clases-activo',
+    titulo: 'Clases de activo',
+    tituloSingular: 'clase de activo',
+    descripcion: 'Equipo, vehículo, infraestructura, TI, biomédico, herramienta… clasifica los activos.',
+    tabla: assetClasses,
+    columnas: { codigo: assetClasses.codigo, nombre: assetClasses.nombre, descripcion: assetClasses.descripcion, activo: assetClasses.activo },
+    campos: CAMPOS_BASE,
+    jerarquico: false,
+  },
   {
     slug: 'tipos-trabajo',
     titulo: 'Tipos de trabajo',

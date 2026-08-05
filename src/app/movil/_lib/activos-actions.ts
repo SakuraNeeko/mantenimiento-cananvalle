@@ -2,7 +2,7 @@
 
 import { and, eq, isNull } from 'drizzle-orm';
 import { db } from '@/db';
-import { assets } from '@/db/schema';
+import { assetClasses, assets } from '@/db/schema';
 import { requirePermission } from '@/lib/permissions';
 import { getCurrentTenant } from '@/lib/tenant';
 
@@ -22,7 +22,7 @@ export type ActivoMovil = {
   id: string;
   codigo: string;
   nombre: string;
-  clase: string;
+  clase: string | null;
   criticidad: string;
   estado: string | null;
   ubicacion: string | null;
@@ -37,12 +37,13 @@ export async function obtenerActivoMovil(id: string): Promise<ActivoMovil | null
       id: assets.id,
       codigo: assets.codigo,
       nombre: assets.nombre,
-      clase: assets.clase,
+      clase: assetClasses.nombre,
       criticidad: assets.criticidad,
       estado: assets.estado,
       ubicacion: locations.nombre,
     })
     .from(assets)
+    .leftJoin(assetClasses, eq(assetClasses.id, assets.claseId))
     .leftJoin(locations, eq(locations.id, assets.locationId))
     .where(and(eq(assets.tenantId, tenant.id), eq(assets.id, id), isNull(assets.deletedAt)))
     .limit(1);

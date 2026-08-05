@@ -15,15 +15,6 @@ export const PRIORIDAD_LABELS: Record<(typeof PRIORIDADES)[number], string> = {
   URGENTE: 'Urgente',
 };
 
-export const CLASE_LABELS = {
-  EQUIPO: 'Equipo',
-  VEHICULO: 'Vehículo',
-  INFRAESTRUCTURA: 'Infraestructura',
-  TI: 'TI',
-  BIOMEDICO: 'Biomédico',
-  HERRAMIENTA: 'Herramienta',
-} as const;
-
 const campoOpcional = z
   .string()
   .trim()
@@ -38,7 +29,7 @@ export const planBaseSchema = z
     workTypeId: campoOpcional,
     alcance: z.enum(ALCANCES),
     assetId: campoOpcional,
-    claseFiltro: campoOpcional,
+    claseFiltroId: campoOpcional,
     criticidadFiltro: campoOpcional,
     locationFiltro: campoOpcional,
     responsibleDefaultId: campoOpcional,

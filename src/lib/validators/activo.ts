@@ -7,17 +7,7 @@ import { z } from 'zod';
  * `asset_status_history` — permitir editarlo aquí rompería esa bitácora.
  */
 
-const CLASES = ['EQUIPO', 'VEHICULO', 'INFRAESTRUCTURA', 'TI', 'BIOMEDICO', 'HERRAMIENTA'] as const;
 const CRITICIDADES = ['A', 'B', 'C'] as const;
-
-export const CLASE_LABELS: Record<(typeof CLASES)[number], string> = {
-  EQUIPO: 'Equipo',
-  VEHICULO: 'Vehículo',
-  INFRAESTRUCTURA: 'Infraestructura',
-  TI: 'TI',
-  BIOMEDICO: 'Biomédico',
-  HERRAMIENTA: 'Herramienta',
-};
 
 export const ESTADO_LABELS: Record<string, string> = {
   OPERATIVO: 'Operativo',
@@ -48,7 +38,7 @@ const enteroOpcional = z
 export const activoBaseSchema = z.object({
   codigo: z.string().trim().min(1, 'El código es obligatorio.').max(60),
   nombre: z.string().trim().min(2, 'Ingresa un nombre.').max(200),
-  clase: z.enum(CLASES),
+  claseId: z.string().trim().min(1, 'Selecciona la clase del activo.'),
   criticidad: z.enum(CRITICIDADES),
   parentId: campoOpcional,
   locationId: campoOpcional,

@@ -2,14 +2,14 @@
 
 import type { ColumnDef } from '@tanstack/react-table';
 import { Badge } from '@/components/ui/badge';
-import { CLASE_LABELS, ESTADO_LABELS } from '@/lib/validators/activo';
+import { ESTADO_LABELS } from '@/lib/validators/activo';
 import type { ColumnMeta } from '@/components/data-table/types';
 
 export type ActivoRow = {
   id: string;
   codigo: string;
   nombre: string;
-  clase: string;
+  clase: string | null;
   estado: string;
   criticidad: 'A' | 'B' | 'C';
   ubicacion: string | null;
@@ -41,8 +41,8 @@ export const activoColumns: ColumnDef<ActivoRow, unknown>[] = [
   {
     accessorKey: 'clase',
     header: 'Clase',
-    meta: { label: 'Clase', tipo: 'enum' } satisfies ColumnMeta,
-    cell: ({ row }) => CLASE_LABELS[row.original.clase as keyof typeof CLASE_LABELS] ?? row.original.clase,
+    meta: { label: 'Clase', tipo: 'texto' } satisfies ColumnMeta,
+    cell: ({ row }) => row.original.clase ?? <span className="text-muted-foreground">—</span>,
   },
   {
     accessorKey: 'estado',

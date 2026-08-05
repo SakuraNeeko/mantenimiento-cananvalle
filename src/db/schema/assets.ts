@@ -14,9 +14,9 @@ import {
   type AnyPgColumn,
 } from 'drizzle-orm/pg-core';
 import { auditColumns, createdColumns } from './_shared';
-import { assetClaseEnum, assetDocumentoTipoEnum, assetEstadoEnum, criticalityEnum, meterReadingOrigenEnum } from './enums';
+import { assetDocumentoTipoEnum, assetEstadoEnum, criticalityEnum, meterReadingOrigenEnum } from './enums';
 import { tenants } from './core';
-import { characteristics, contracts, costCenters, locations, meters, parties, responsibleCenters } from './infra';
+import { assetClasses, characteristics, contracts, costCenters, locations, meters, parties, responsibleCenters } from './infra';
 import { materials } from './inventory';
 
 /**
@@ -42,7 +42,9 @@ export const assets = pgTable(
     nombre: text('nombre').notNull(),
     /** Despiece: jerarquía padre/hijo ilimitada. */
     parentId: uuid('parent_id').references((): AnyPgColumn => assets.id, { onDelete: 'set null' }),
-    clase: assetClaseEnum('clase').notNull().default('EQUIPO'),
+    claseId: uuid('clase_id')
+      .notNull()
+      .references(() => assetClasses.id, { onDelete: 'restrict' }),
     estado: assetEstadoEnum('estado').notNull().default('OPERATIVO'),
     criticidad: criticalityEnum('criticidad').notNull().default('C'),
     locationId: uuid('location_id').references(() => locations.id, { onDelete: 'set null' }),
@@ -75,7 +77,7 @@ export const assets = pgTable(
     index('assets_tenant_idx').on(t.tenantId),
     index('assets_parent_idx').on(t.parentId),
     index('assets_location_idx').on(t.locationId),
-    index('assets_clase_idx').on(t.tenantId, t.clase),
+    index('assets_clase_id_idx').on(t.tenantId, t.claseId),
     index('assets_estado_idx').on(t.tenantId, t.estado),
   ],
 );

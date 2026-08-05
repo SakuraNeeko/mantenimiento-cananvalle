@@ -79,9 +79,6 @@ export const importJobEstadoEnum = pgEnum('import_job_estado', ['PROCESANDO', 'C
 /* FASE 3 — ACTIVOS                                                           */
 /* -------------------------------------------------------------------------- */
 
-/** Clase del activo (§4.3 del prompt maestro). */
-export const assetClaseEnum = pgEnum('asset_clase', ['EQUIPO', 'VEHICULO', 'INFRAESTRUCTURA', 'TI', 'BIOMEDICO', 'HERRAMIENTA']);
-
 /** Estado operativo: alimenta el cálculo de disponibilidad (MTBF/MTTR) en fases posteriores. */
 export const assetEstadoEnum = pgEnum('asset_estado', ['OPERATIVO', 'EN_MANTENIMIENTO', 'FUERA_DE_SERVICIO', 'DADO_DE_BAJA']);
 

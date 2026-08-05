@@ -18,7 +18,7 @@ export default async function PlanGeneralPage({ params }: { params: Promise<{ id
   if (!detalle) notFound();
 
   const { plan } = detalle;
-  const opciones = await obtenerOpcionesPlan().catch(() => ({ maintenanceTypes: [], workTypes: [], assets: [], locations: [], responsables: [] }));
+  const opciones = await obtenerOpcionesPlan().catch(() => ({ clases: [], maintenanceTypes: [], workTypes: [], assets: [], locations: [], responsables: [] }));
 
   return (
     <div className="mx-auto max-w-3xl">
@@ -31,7 +31,7 @@ export default async function PlanGeneralPage({ params }: { params: Promise<{ id
           workTypeId: plan.workTypeId ?? undefined,
           alcance: plan.alcance,
           assetId: plan.assetId ?? undefined,
-          claseFiltro: plan.claseFiltro ?? undefined,
+          claseFiltroId: plan.claseFiltroId ?? undefined,
           criticidadFiltro: plan.criticidadFiltro ?? undefined,
           locationFiltro: plan.locationFiltro ?? undefined,
           responsibleDefaultId: plan.responsibleDefaultId ?? undefined,
@@ -47,6 +47,7 @@ export default async function PlanGeneralPage({ params }: { params: Promise<{ id
           workTypeNombre: detalle.workTypeNombre,
           locationFiltroNombre: detalle.locationFiltroNombre,
           responsableNombre: detalle.responsableNombre,
+          claseFiltroNombre: detalle.claseFiltroNombre,
         }}
         puedeEditar={hasPermission(session, 'planes.gestionar')}
       />

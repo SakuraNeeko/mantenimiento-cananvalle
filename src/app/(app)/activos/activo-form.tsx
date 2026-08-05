@@ -11,7 +11,7 @@ import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { activoBaseSchema, CLASE_LABELS, type ActivoFormValues } from '@/lib/validators/activo';
+import { activoBaseSchema, type ActivoFormValues } from '@/lib/validators/activo';
 import type { OpcionesActivo } from './actions';
 import { crearActivo, actualizarActivo } from './actions';
 
@@ -20,7 +20,7 @@ const SIN_VALOR = '__vacio__';
 export const VALORES_INICIALES: ActivoFormValues = {
   codigo: '',
   nombre: '',
-  clase: 'EQUIPO',
+  claseId: '',
   criticidad: 'C',
   diasAlertaGarantia: 30,
   activo: true,
@@ -109,19 +109,20 @@ export function ActivoForm({
           </div>
 
           <div className="space-y-1">
-            <Label htmlFor="clase">Clase</Label>
-            <Select value={form.watch('clase')} onValueChange={(v) => form.setValue('clase', v as ActivoFormValues['clase'])}>
-              <SelectTrigger id="clase">
-                <SelectValue />
+            <Label htmlFor="claseId">Clase</Label>
+            <Select value={form.watch('claseId')} onValueChange={(v) => form.setValue('claseId', v)}>
+              <SelectTrigger id="claseId" aria-invalid={Boolean(form.formState.errors.claseId)}>
+                <SelectValue placeholder="Selecciona una clase" />
               </SelectTrigger>
               <SelectContent>
-                {Object.entries(CLASE_LABELS).map(([value, label]) => (
-                  <SelectItem key={value} value={value}>
-                    {label}
+                {opciones.clases.map((o) => (
+                  <SelectItem key={o.value} value={o.value}>
+                    {o.label}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
+            {form.formState.errors.claseId ? <p className="text-2xs text-destructive">{form.formState.errors.claseId.message}</p> : null}
           </div>
 
           <div className="space-y-1">

@@ -19,7 +19,7 @@ export default async function ActivoGeneralPage({ params }: { params: Promise<{ 
         id: asset.id,
         codigo: asset.codigo,
         nombre: asset.nombre,
-        clase: asset.clase,
+        claseId: asset.claseId,
         criticidad: asset.criticidad,
         parentId: asset.parentId ?? undefined,
         locationId: asset.locationId ?? undefined,

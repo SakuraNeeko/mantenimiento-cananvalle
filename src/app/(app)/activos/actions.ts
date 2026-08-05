@@ -3,7 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { and, eq, isNull, ne, sql } from 'drizzle-orm';
 import { db, dbTx } from '@/db';
-import { assets, assetStatusHistory, costCenters, locations, parties, responsibleCenters, contracts } from '@/db/schema';
+import { assets, assetClasses, assetStatusHistory, costCenters, locations, parties, responsibleCenters, contracts } from '@/db/schema';
 import { requirePermission } from '@/lib/permissions';
 import { getCurrentTenant } from '@/lib/tenant';
 import { buildDiff, writeAudit } from '@/lib/audit';
@@ -27,7 +27,7 @@ function datosDeFormulario(data: CrearActivoInput) {
   return {
     codigo: data.codigo,
     nombre: data.nombre,
-    clase: data.clase,
+    claseId: data.claseId,
     criticidad: data.criticidad,
     parentId: data.parentId ?? null,
     locationId: data.locationId ?? null,
@@ -230,7 +230,7 @@ export async function obtenerActivoParaEditar(id: string): Promise<ActivoFormVal
     id: fila.id,
     codigo: fila.codigo,
     nombre: fila.nombre,
-    clase: fila.clase,
+    claseId: fila.claseId,
     criticidad: fila.criticidad,
     parentId: fila.parentId ?? undefined,
     locationId: fila.locationId ?? undefined,
@@ -254,6 +254,7 @@ export async function obtenerActivoParaEditar(id: string): Promise<ActivoFormVal
 }
 
 export type OpcionesActivo = {
+  clases: { value: string; label: string }[];
   locations: { value: string; label: string }[];
   costCenters: { value: string; label: string }[];
   responsibleCenters: { value: string; label: string }[];
@@ -267,7 +268,8 @@ export async function obtenerOpcionesActivo(excluirId?: string): Promise<Opcione
   await requirePermission('activos.ver');
   const tenant = await getCurrentTenant();
 
-  const [locs, ccs, rcs, prts, ctrs, padres] = await Promise.all([
+  const [clases, locs, ccs, rcs, prts, ctrs, padres] = await Promise.all([
+    db.select({ value: assetClasses.id, label: assetClasses.nombre }).from(assetClasses).where(and(eq(assetClasses.tenantId, tenant.id), eq(assetClasses.activo, true), isNull(assetClasses.deletedAt))).orderBy(assetClasses.nombre),
     db.select({ value: locations.id, label: locations.nombre }).from(locations).where(and(eq(locations.tenantId, tenant.id), eq(locations.activo, true), isNull(locations.deletedAt))).orderBy(locations.nombre),
     db.select({ value: costCenters.id, label: costCenters.nombre }).from(costCenters).where(and(eq(costCenters.tenantId, tenant.id), eq(costCenters.activo, true), isNull(costCenters.deletedAt))).orderBy(costCenters.nombre),
     db.select({ value: responsibleCenters.id, label: responsibleCenters.nombre }).from(responsibleCenters).where(and(eq(responsibleCenters.tenantId, tenant.id), eq(responsibleCenters.activo, true), isNull(responsibleCenters.deletedAt))).orderBy(responsibleCenters.nombre),
@@ -287,6 +289,7 @@ export async function obtenerOpcionesActivo(excluirId?: string): Promise<Opcione
   ]);
 
   return {
+    clases: clases.map((c) => ({ value: c.value, label: c.label })),
     locations: locs.map((l) => ({ value: l.value, label: l.label })),
     costCenters: ccs.map((c) => ({ value: c.value, label: c.label })),
     responsibleCenters: rcs.map((r) => ({ value: r.value, label: r.label })),

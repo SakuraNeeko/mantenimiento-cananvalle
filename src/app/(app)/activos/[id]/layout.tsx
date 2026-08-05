@@ -4,7 +4,7 @@ import { ChevronRight } from 'lucide-react';
 import { assertSiteAccess, requirePermission } from '@/lib/permissions';
 import { PageHeader } from '@/components/layout/page-header';
 import { Badge } from '@/components/ui/badge';
-import { ESTADO_LABELS, CLASE_LABELS } from '@/lib/validators/activo';
+import { ESTADO_LABELS } from '@/lib/validators/activo';
 import { obtenerActivoDetalle } from './data';
 import { TabNav } from './tab-nav';
 import { QrButton } from './qr-button';
@@ -48,7 +48,7 @@ export default async function ActivoLayout({ children, params }: { children: Rea
         ) : null}
         <PageHeader
           titulo={`${asset.codigo} · ${asset.nombre}`}
-          descripcion={CLASE_LABELS[asset.clase]}
+          descripcion={detalle.clase ?? undefined}
           acciones={
             <>
               <Badge variant={CRITICIDAD_VARIANT[asset.criticidad]}>Criticidad {asset.criticidad}</Badge>

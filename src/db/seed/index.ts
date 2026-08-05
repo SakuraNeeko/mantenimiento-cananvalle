@@ -4,6 +4,7 @@ import { and, eq, isNull, notInArray } from 'drizzle-orm';
 import type { PgColumn, PgTable } from 'drizzle-orm/pg-core';
 import { db } from '@/db';
 import {
+  assetClasses,
   currencies,
   fuels,
   kardexConcepts,
@@ -78,6 +79,18 @@ const SECUENCIAS = [
 type FilaCatalogoSeed = { codigo: string; nombre: string; descripcion?: string; extra?: Record<string, unknown> };
 
 const CATALOGOS_SEED: { nombre: string; tabla: PgTable; filas: FilaCatalogoSeed[] }[] = [
+  {
+    nombre: 'Clases de activo',
+    tabla: assetClasses,
+    filas: [
+      { codigo: 'EQUIPO', nombre: 'Equipo' },
+      { codigo: 'VEHICULO', nombre: 'Vehículo' },
+      { codigo: 'INFRAESTRUCTURA', nombre: 'Infraestructura' },
+      { codigo: 'TI', nombre: 'TI' },
+      { codigo: 'BIOMEDICO', nombre: 'Biomédico' },
+      { codigo: 'HERRAMIENTA', nombre: 'Herramienta' },
+    ],
+  },
   {
     nombre: 'Tipos de mantenimiento',
     tabla: maintenanceTypes,

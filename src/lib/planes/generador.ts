@@ -72,7 +72,7 @@ async function activosDelPlan(plan: typeof maintenancePlans.$inferSelect) {
   }
 
   const condiciones = [eq(assets.tenantId, plan.tenantId), eq(assets.activo, true), isNull(assets.deletedAt)];
-  if (plan.claseFiltro) condiciones.push(eq(assets.clase, plan.claseFiltro));
+  if (plan.claseFiltroId) condiciones.push(eq(assets.claseId, plan.claseFiltroId));
   if (plan.criticidadFiltro) condiciones.push(eq(assets.criticidad, plan.criticidadFiltro));
   if (plan.locationFiltro) condiciones.push(eq(assets.locationId, plan.locationFiltro));
   return db.select().from(assets).where(and(...condiciones));

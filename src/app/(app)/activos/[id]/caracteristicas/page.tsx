@@ -24,7 +24,7 @@ export default async function CaracteristicasPage({ params }: { params: Promise<
           eq(characteristics.tenantId, tenant.id),
           eq(characteristics.activo, true),
           isNull(characteristics.deletedAt),
-          or(eq(characteristics.claseActivo, detalle.asset.clase), isNull(characteristics.claseActivo)),
+          or(detalle.claseCodigo ? eq(characteristics.claseActivo, detalle.claseCodigo) : undefined, isNull(characteristics.claseActivo)),
         ),
       )
       .orderBy(characteristics.nombre),

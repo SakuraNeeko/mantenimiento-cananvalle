@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { and, eq, inArray, isNull, sql } from 'drizzle-orm';
 import { db } from '@/db';
-import { assets, costCenters, locations } from '@/db/schema';
+import { assetClasses, assets, costCenters, locations } from '@/db/schema';
 import { hasPermission, requirePermission, scopeDescriptor } from '@/lib/permissions';
 import { getCurrentTenant } from '@/lib/tenant';
 import { buildLimitOffset, buildOrderBy, buildWhere } from '@/lib/query-builder';
@@ -15,7 +15,7 @@ export const metadata: Metadata = { title: 'Activos' };
 const COLUMNAS = {
   codigo: assets.codigo,
   nombre: assets.nombre,
-  clase: assets.clase,
+  clase: assetClasses.nombre,
   estado: assets.estado,
   criticidad: assets.criticidad,
   activo: assets.activo,
@@ -48,7 +48,7 @@ export default async function ActivosPage({
         id: assets.id,
         codigo: assets.codigo,
         nombre: assets.nombre,
-        clase: assets.clase,
+        clase: assetClasses.nombre,
         estado: assets.estado,
         criticidad: assets.criticidad,
         ubicacion: locations.nombre,
@@ -56,13 +56,19 @@ export default async function ActivosPage({
         activo: assets.activo,
       })
       .from(assets)
+      .leftJoin(assetClasses, eq(assetClasses.id, assets.claseId))
       .leftJoin(locations, eq(locations.id, assets.locationId))
       .leftJoin(costCenters, eq(costCenters.id, assets.costCenterId))
       .where(where)
       .orderBy(...buildOrderBy(COLUMNAS, query.sort, assets.nombre))
       .limit(limit)
       .offset(offset),
-    db.select({ n: sql<number>`count(*)::int` }).from(assets).leftJoin(locations, eq(locations.id, assets.locationId)).where(where),
+    db
+      .select({ n: sql<number>`count(*)::int` })
+      .from(assets)
+      .leftJoin(assetClasses, eq(assetClasses.id, assets.claseId))
+      .leftJoin(locations, eq(locations.id, assets.locationId))
+      .where(where),
   ]);
 
   const data = {
