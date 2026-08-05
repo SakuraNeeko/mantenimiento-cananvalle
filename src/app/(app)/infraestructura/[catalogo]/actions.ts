@@ -12,6 +12,8 @@ import type { ColumnFilter } from '@/components/data-table/types';
 import { getCatalogo, type CatalogoDef } from '@/lib/catalogs/registry';
 import { buildCatalogoSchema, type ValoresDinamicos } from '@/lib/catalogs/validators';
 import { columnasBase, columnasDe, esViolacionDeUnicidad } from '@/lib/catalogs/db-helpers';
+import { resolverReferencias } from '@/lib/importacion/resolver-referencias';
+import type { FilaPreview } from '@/components/excel/import-dialog';
 
 /**
  * Server Actions genéricas: una sola implementación para los ~28 catálogos
@@ -279,6 +281,52 @@ export type ResultadoImportacion = {
 } | { ok: false; error: string };
 
 /**
+ * Previsualiza una importación sin escribir nada: resuelve referencias,
+ * valida cada fila y determina si crearía o actualizaría un registro.
+ */
+export async function previsualizarImportacion(slug: string, filasCrudas: Record<string, unknown>[]): Promise<FilaPreview[]> {
+  const def = requireCatalogo(slug);
+  await requirePermission('infra.importar');
+  const tenant = await getCurrentTenant();
+  const cols = columnasBase(def);
+  const colCodigo = columnasDe(def).codigo;
+  if (!colCodigo) return filasCrudas.map((_, i) => ({ fila: i + 2, estado: 'ERROR', error: 'Este catálogo no admite importación.' }));
+
+  const schema = buildCatalogoSchema(def);
+  const opciones = await obtenerOpciones(slug);
+  const resultado: FilaPreview[] = [];
+
+  for (let i = 0; i < filasCrudas.length; i++) {
+    const numeroFila = i + 2; // fila 1 = encabezado
+    const cruda = filasCrudas[i]!;
+    const { valores, errores: erroresReferencia } = resolverReferencias(def.campos, opciones, cruda);
+    const codigo = String(valores.codigo ?? '').trim();
+    const nombre = String(valores.nombre ?? '').trim();
+
+    if (erroresReferencia.length > 0) {
+      resultado.push({ fila: numeroFila, estado: 'ERROR', codigo, nombre, error: erroresReferencia.join(' ') });
+      continue;
+    }
+
+    const parsed = schema.safeParse(valores);
+    if (!parsed.success) {
+      resultado.push({ fila: numeroFila, estado: 'ERROR', codigo, nombre, error: parsed.error.issues[0]?.message ?? 'Datos inválidos.' });
+      continue;
+    }
+
+    const [existente] = await db
+      .select({ id: cols.id })
+      .from(def.tabla)
+      .where(and(eq(cols.tenantId, tenant.id), eq(colCodigo, codigo), isNull(cols.deletedAt)))
+      .limit(1);
+
+    resultado.push({ fila: numeroFila, estado: existente ? 'ACTUALIZAR' : 'CREAR', codigo, nombre });
+  }
+
+  return resultado;
+}
+
+/**
  * Importa filas ya parseadas desde el Excel (una por fila, claves = `campo.name`).
  * Cada fila se procesa de forma independiente: código existente → actualiza,
  * código nuevo → crea. Un error en una fila no detiene a las demás — el
@@ -303,20 +351,27 @@ export async function importarFilas(
   if (!job) return { ok: false, error: 'No se pudo iniciar la importación.' };
 
   const schema = buildCatalogoSchema(def);
+  const opciones = await obtenerOpciones(slug);
   const errores: { fila: number; error: string }[] = [];
   let filasOk = 0;
 
   for (let i = 0; i < filasCrudas.length; i++) {
     const numeroFila = i + 2; // fila 1 = encabezado
     const cruda = filasCrudas[i]!;
-    const parsed = schema.safeParse(cruda);
+    const { valores, errores: erroresReferencia } = resolverReferencias(def.campos, opciones, cruda);
+    if (erroresReferencia.length > 0) {
+      errores.push({ fila: numeroFila, error: erroresReferencia.join(' ') });
+      continue;
+    }
+
+    const parsed = schema.safeParse(valores);
     if (!parsed.success) {
       errores.push({ fila: numeroFila, error: parsed.error.issues[0]?.message ?? 'Datos inválidos.' });
       continue;
     }
 
     try {
-      const codigo = String(cruda.codigo ?? '').trim();
+      const codigo = String(valores.codigo ?? '').trim();
       const [existente] = await db
         .select({ id: cols.id })
         .from(def.tabla)

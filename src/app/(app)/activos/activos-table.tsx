@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { DataTable } from '@/components/data-table';
 import type { ColumnFilter, SortRule, TableResult } from '@/components/data-table/types';
 import { activoColumns, type ActivoRow } from './columns';
+import { ActivosImportExport } from './import-export';
 
 export function ActivosTable({
   data,
@@ -13,12 +14,16 @@ export function ActivosTable({
   filters,
   search,
   puedeCrear,
+  puedeExportar,
+  puedeImportar,
 }: {
   data: TableResult<ActivoRow>;
   sort: SortRule[];
   filters: ColumnFilter[];
   search: string;
   puedeCrear: boolean;
+  puedeExportar: boolean;
+  puedeImportar: boolean;
 }) {
   const router = useRouter();
 
@@ -32,12 +37,15 @@ export function ActivosTable({
       search={search}
       onRowClick={(row) => router.push(`/activos/${row.id}`)}
       acciones={
-        puedeCrear ? (
-          <Button size="sm" onClick={() => router.push('/activos/nuevo')}>
-            <Plus aria-hidden />
-            Nuevo activo
-          </Button>
-        ) : null
+        <>
+          <ActivosImportExport filtros={filters} search={search} puedeExportar={puedeExportar} puedeImportar={puedeImportar} />
+          {puedeCrear ? (
+            <Button size="sm" onClick={() => router.push('/activos/nuevo')}>
+              <Plus aria-hidden />
+              Nuevo activo
+            </Button>
+          ) : null}
+        </>
       }
       vacio={{
         titulo: 'Aún no hay activos',

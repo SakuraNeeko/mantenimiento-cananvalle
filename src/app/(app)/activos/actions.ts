@@ -3,10 +3,15 @@
 import { revalidatePath } from 'next/cache';
 import { and, eq, isNull, ne, sql } from 'drizzle-orm';
 import { db, dbTx } from '@/db';
-import { assets, assetClasses, assetStatusHistory, costCenters, locations, parties, responsibleCenters, contracts } from '@/db/schema';
+import { assets, assetClasses, assetStatusHistory, costCenters, importJobs, locations, parties, responsibleCenters, contracts } from '@/db/schema';
 import { requirePermission } from '@/lib/permissions';
 import { getCurrentTenant } from '@/lib/tenant';
 import { buildDiff, writeAudit } from '@/lib/audit';
+import { buildWhere } from '@/lib/query-builder';
+import type { ColumnFilter } from '@/components/data-table/types';
+import { resolverReferencias } from '@/lib/importacion/resolver-referencias';
+import type { FilaExportada, FilaPreview, ResultadoImportacion } from '@/components/excel/import-dialog';
+import { ACTIVO_IMPORT_CAMPOS } from './import-campos';
 import {
   actualizarActivoSchema,
   crearActivoSchema,
@@ -297,4 +302,165 @@ export async function obtenerOpcionesActivo(excluirId?: string): Promise<Opcione
     contracts: ctrs.map((c) => ({ value: c.value, label: c.label })),
     padres: padres.map((p) => ({ value: p.value, label: p.label })),
   };
+}
+
+/* -------------------------------------------------------------------------- */
+/* EXCEL — IMPORTAR / EXPORTAR / PLANTILLA                                    */
+/* -------------------------------------------------------------------------- */
+
+async function opcionesParaResolver(): Promise<Record<string, { value: string; label: string }[]>> {
+  const opciones = await obtenerOpcionesActivo();
+  return {
+    claseId: opciones.clases,
+    locationId: opciones.locations,
+    costCenterId: opciones.costCenters,
+    responsibleCenterId: opciones.responsibleCenters,
+    partyId: opciones.parties,
+    contractId: opciones.contracts,
+  };
+}
+
+export async function exportarActivos(filtros: ColumnFilter[], search: string): Promise<{ headers: string[]; rows: FilaExportada[] }> {
+  await requirePermission('activos.exportar');
+  const tenant = await getCurrentTenant();
+  const opciones = await opcionesParaResolver();
+
+  const COLUMNAS = { codigo: assets.codigo, nombre: assets.nombre, clase: assetClasses.nombre, estado: assets.estado, criticidad: assets.criticidad, activo: assets.activo };
+  const where = and(
+    eq(assets.tenantId, tenant.id),
+    isNull(assets.deletedAt),
+    buildWhere(COLUMNAS, filtros, search, ['codigo', 'nombre', 'fabricante', 'modelo', 'serie']),
+  );
+
+  const filas = await db
+    .select()
+    .from(assets)
+    .leftJoin(assetClasses, eq(assetClasses.id, assets.claseId))
+    .where(where)
+    .orderBy(assets.nombre);
+
+  const headers = ACTIVO_IMPORT_CAMPOS.map((c) => c.label);
+  const rows: FilaExportada[] = filas.map(({ assets: fila }) =>
+    ACTIVO_IMPORT_CAMPOS.map((campo) => {
+      const v = (fila as unknown as Record<string, unknown>)[campo.name];
+      if (campo.tipo === 'referencia') return (opciones[campo.name] ?? []).find((o) => o.value === v)?.label ?? '';
+      if (campo.tipo === 'booleano') return v ? 'Sí' : 'No';
+      if (v === null || v === undefined) return '';
+      if (campo.tipo === 'fecha') {
+        const fecha = v instanceof Date ? v : new Date(String(v));
+        if (!Number.isNaN(fecha.getTime())) return fecha;
+      }
+      return typeof v === 'number' ? v : String(v);
+    }),
+  );
+
+  return { headers, rows };
+}
+
+/** Valida y resuelve una fila de import sin escribir nada; determina si crearía o actualizaría. */
+async function validarFilaImportacion(
+  cruda: Record<string, unknown>,
+  opciones: Record<string, { value: string; label: string }[]>,
+): Promise<{ ok: true; datos: CrearActivoInput } | { ok: false; codigo: string; nombre: string; error: string }> {
+  const { valores, errores: erroresReferencia } = resolverReferencias(ACTIVO_IMPORT_CAMPOS, opciones, cruda);
+  const codigo = String(valores.codigo ?? '').trim();
+  const nombre = String(valores.nombre ?? '').trim();
+
+  if (erroresReferencia.length > 0) {
+    return { ok: false, codigo, nombre, error: erroresReferencia.join(' ') };
+  }
+
+  const parsed = crearActivoSchema.safeParse(valores);
+  if (!parsed.success) {
+    return { ok: false, codigo, nombre, error: parsed.error.issues[0]?.message ?? 'Datos inválidos.' };
+  }
+
+  return { ok: true, datos: parsed.data };
+}
+
+export async function previsualizarImportacionActivos(filasCrudas: Record<string, unknown>[]): Promise<FilaPreview[]> {
+  await requirePermission('activos.importar');
+  const tenant = await getCurrentTenant();
+  const opciones = await opcionesParaResolver();
+  const resultado: FilaPreview[] = [];
+
+  for (let i = 0; i < filasCrudas.length; i++) {
+    const numeroFila = i + 2;
+    const validacion = await validarFilaImportacion(filasCrudas[i]!, opciones);
+    if (!validacion.ok) {
+      resultado.push({ fila: numeroFila, estado: 'ERROR', codigo: validacion.codigo, nombre: validacion.nombre, error: validacion.error });
+      continue;
+    }
+
+    const [existente] = await db
+      .select({ id: assets.id })
+      .from(assets)
+      .where(and(eq(assets.tenantId, tenant.id), eq(assets.codigo, validacion.datos.codigo), isNull(assets.deletedAt)))
+      .limit(1);
+
+    resultado.push({ fila: numeroFila, estado: existente ? 'ACTUALIZAR' : 'CREAR', codigo: validacion.datos.codigo, nombre: validacion.datos.nombre });
+  }
+
+  return resultado;
+}
+
+export async function importarActivosFilas(filasCrudas: Record<string, unknown>[], archivoNombre: string): Promise<ResultadoImportacion> {
+  const session = await requirePermission('activos.importar');
+  const tenant = await getCurrentTenant();
+  const opciones = await opcionesParaResolver();
+
+  const [job] = await db
+    .insert(importJobs)
+    .values({ tenantId: tenant.id, catalogo: 'activos', archivoNombre, estado: 'PROCESANDO', totalFilas: filasCrudas.length, userId: session.user.id })
+    .returning({ id: importJobs.id });
+  if (!job) return { ok: false, error: 'No se pudo iniciar la importación.' };
+
+  const errores: { fila: number; error: string }[] = [];
+  let filasOk = 0;
+
+  for (let i = 0; i < filasCrudas.length; i++) {
+    const numeroFila = i + 2;
+    const validacion = await validarFilaImportacion(filasCrudas[i]!, opciones);
+    if (!validacion.ok) {
+      errores.push({ fila: numeroFila, error: validacion.error });
+      continue;
+    }
+
+    try {
+      const [existente] = await db
+        .select({ id: assets.id })
+        .from(assets)
+        .where(and(eq(assets.tenantId, tenant.id), eq(assets.codigo, validacion.datos.codigo), isNull(assets.deletedAt)))
+        .limit(1);
+
+      if (existente) {
+        await db.update(assets).set(datosDeFormulario(validacion.datos)).where(eq(assets.id, existente.id));
+      } else {
+        await db.insert(assets).values({ tenantId: tenant.id, ...datosDeFormulario(validacion.datos) });
+      }
+      filasOk++;
+    } catch (error) {
+      errores.push({ fila: numeroFila, error: esViolacionDeUnicidad(error) ? 'Código duplicado.' : 'No se pudo guardar la fila.' });
+    }
+  }
+
+  const estado = errores.length === 0 ? 'COMPLETADO' : filasOk === 0 ? 'FALLIDO' : 'CON_ERRORES';
+  await db
+    .update(importJobs)
+    .set({ estado, filasOk, filasError: errores.length, errores, terminadoAt: new Date() })
+    .where(eq(importJobs.id, job.id));
+
+  await writeAudit({
+    tenantId: tenant.id,
+    entidad: 'activos',
+    accion: 'INSERT',
+    nivel: 'CRITICO',
+    permiso: 'activos.importar',
+    userId: session.user.id,
+    userEmail: session.user.email ?? null,
+    diff: { importacion: { antes: null, despues: `${filasOk}/${filasCrudas.length} filas desde ${archivoNombre}` } },
+  });
+
+  revalidatePath('/activos');
+  return { ok: true, jobId: job.id, total: filasCrudas.length, filasOk, filasError: errores.length, errores };
 }

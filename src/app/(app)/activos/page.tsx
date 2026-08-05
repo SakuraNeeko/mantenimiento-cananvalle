@@ -82,7 +82,15 @@ export default async function ActivosPage({
     <div className="flex h-full flex-col gap-3">
       <PageHeader titulo="Activos" descripcion="Equipos, vehículos, infraestructura y herramientas que mantienes." />
       <div className="min-h-0 flex-1">
-        <ActivosTable data={data} sort={query.sort} filters={query.filters} search={query.search} puedeCrear={hasPermission(session, 'activos.crear')} />
+        <ActivosTable
+          data={data}
+          sort={query.sort}
+          filters={query.filters}
+          search={query.search}
+          puedeCrear={hasPermission(session, 'activos.crear')}
+          puedeExportar={hasPermission(session, 'activos.exportar')}
+          puedeImportar={hasPermission(session, 'activos.importar')}
+        />
       </div>
     </div>
   );

@@ -5,7 +5,7 @@ import type { CampoDefPublico, CatalogoDefPublico } from './registry';
  * Excel) a un registro `{ campo.name: valor }` con el tipo que cada campo
  * espera, para que `buildCatalogoSchema` lo valide sin sorpresas.
  */
-export function mapearFilaExcel(def: CatalogoDefPublico, filaCruda: Record<string, unknown>): Record<string, unknown> {
+export function mapearFilaExcel(def: Pick<CatalogoDefPublico, 'campos'>, filaCruda: Record<string, unknown>): Record<string, unknown> {
   // Los encabezados del Excel son las `label` de cada campo (mismas que exporta `exportarFilas`).
   const porLabel = new Map(def.campos.map((c) => [c.label.trim().toLowerCase(), c]));
   const salida: Record<string, unknown> = {};

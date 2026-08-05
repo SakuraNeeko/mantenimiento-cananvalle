@@ -72,7 +72,15 @@ export default async function MaterialesPage({
     <div className="flex h-full flex-col gap-3">
       <PageHeader titulo="Materiales" descripcion="Repuestos, insumos, herramientas y EPP controlados por kárdex." />
       <div className="min-h-0 flex-1">
-        <MaterialesTable data={data} sort={query.sort} filters={query.filters} search={query.search} puedeGestionar={hasPermission(session, 'almacen.materiales.gestionar')} />
+        <MaterialesTable
+          data={data}
+          sort={query.sort}
+          filters={query.filters}
+          search={query.search}
+          puedeGestionar={hasPermission(session, 'almacen.materiales.gestionar')}
+          puedeExportar={hasPermission(session, 'almacen.materiales.exportar')}
+          puedeImportar={hasPermission(session, 'almacen.materiales.importar')}
+        />
       </div>
     </div>
   );
