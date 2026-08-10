@@ -2,6 +2,8 @@ import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { ChevronRight } from 'lucide-react';
 import { assertSiteAccess, requirePermission } from '@/lib/permissions';
+import { getCurrentTenant } from '@/lib/tenant';
+import { moduloHabilitado } from '@/lib/tenant/modules';
 import { PageHeader } from '@/components/layout/page-header';
 import { Badge } from '@/components/ui/badge';
 import { ESTADO_LABELS } from '@/lib/validators/activo';
@@ -9,7 +11,7 @@ import { obtenerActivoDetalle } from './data';
 import { TabNav } from './tab-nav';
 import { QrButton } from './qr-button';
 
-const TABS = [
+const TABS_BASE = [
   { href: '', label: 'General' },
   { href: '/caracteristicas', label: 'Características' },
   { href: '/medidores', label: 'Medidores' },
@@ -35,6 +37,10 @@ export default async function ActivoLayout({ children, params }: { children: Rea
   const { asset } = detalle;
   // Oculto en el menú no basta (§8): bloquea también la URL directa a un activo de una sede que no te corresponde.
   assertSiteAccess(session, detalle.ubicacionSiteId ?? null);
+
+  const tenant = await getCurrentTenant();
+  const bitacoraActiva = await moduloHabilitado(tenant.id, 'bitacora');
+  const TABS = bitacoraActiva ? [...TABS_BASE.slice(0, -1), { href: '/bitacora', label: 'Bitácora' }, TABS_BASE[TABS_BASE.length - 1]!] : TABS_BASE;
 
   return (
     <div className="flex h-full flex-col gap-3">

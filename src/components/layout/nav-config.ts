@@ -25,7 +25,8 @@ export type IconName =
   | 'ClipboardList'
   | 'Zap'
   | 'Cog'
-  | 'Plug';
+  | 'Plug'
+  | 'Car';
 
 export type NavItem = {
   href: string;
@@ -76,6 +77,7 @@ export const NAV_GROUPS: NavGroup[] = [
     titulo: 'Complementarios',
     items: [
       { href: '/combustibles', label: 'Combustibles', icon: 'Fuel', permisos: ['combustibles.ver'], modulo: 'combustibles', fase: 1 },
+      { href: '/bitacora-uso', label: 'Bitácora de uso', icon: 'Car', permisos: ['bitacora.ver'], modulo: 'bitacora', fase: 1 },
       { href: '/tecnovigilancia', label: 'Tecnovigilancia', icon: 'ClipboardList', permisos: ['tecnovigilancia.ver'], modulo: 'tecnovigilancia', fase: 1 },
       { href: '/automatizador', label: 'Automatizador', icon: 'Zap', permisos: ['automatizador.ver'], modulo: 'automatizador', fase: 1 },
     ],

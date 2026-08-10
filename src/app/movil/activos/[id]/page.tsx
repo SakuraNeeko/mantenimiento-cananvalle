@@ -1,10 +1,12 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { MessageSquareWarning } from 'lucide-react';
+import { Car, MessageSquareWarning } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { getCurrentTenant } from '@/lib/tenant';
+import { moduloHabilitado } from '@/lib/tenant/modules';
 import { obtenerActivoMovil } from '../../_lib/activos-actions';
 
 export const metadata: Metadata = { title: 'Activo' };
@@ -13,6 +15,9 @@ export default async function ActivoMovilPage({ params }: { params: Promise<{ id
   const { id } = await params;
   const activo = await obtenerActivoMovil(id);
   if (!activo) notFound();
+
+  const tenant = await getCurrentTenant();
+  const bitacoraActiva = await moduloHabilitado(tenant.id, 'bitacora');
 
   return (
     <div className="space-y-3">
@@ -35,6 +40,15 @@ export default async function ActivoMovilPage({ params }: { params: Promise<{ id
           Reportar novedad de este activo
         </Link>
       </Button>
+
+      {bitacoraActiva ? (
+        <Button className="min-h-11 w-full" variant="outline" asChild>
+          <Link href={`/bitacora-uso/nueva?assetId=${activo.id}`}>
+            <Car aria-hidden />
+            Registrar salida de este activo
+          </Link>
+        </Button>
+      ) : null}
     </div>
   );
 }

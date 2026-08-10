@@ -147,6 +147,11 @@ export const PERMISSIONS = [
   { codigo: 'automatizador.ver', modulo: 'Automatizador', descripcion: 'Consultar reglas de automatización' },
   { codigo: 'automatizador.gestionar', modulo: 'Automatizador', descripcion: 'Crear y activar reglas', sensible: true },
   { codigo: 'automatizador.bitacora.ver', modulo: 'Automatizador', descripcion: 'Ver la bitácora de ejecución' },
+
+  /* --- BITÁCORA DE USO -------------------------------------------------- */
+  { codigo: 'bitacora.ver', modulo: 'Bitácora de uso', descripcion: 'Consultar el uso registrado de los activos' },
+  { codigo: 'bitacora.registrar', modulo: 'Bitácora de uso', descripcion: 'Registrar salida y regreso de un activo' },
+  { codigo: 'bitacora.eliminar', modulo: 'Bitácora de uso', descripcion: 'Eliminar un registro de uso', sensible: true },
 ] as const satisfies readonly PermissionDef[];
 
 /** Unión literal de todos los códigos: `requirePermission` no acepta strings sueltos. */
@@ -227,6 +232,7 @@ export const ROLE_MATRIX: Record<RoleCode, readonly PermissionCode[]> = {
     'reportes.dashboard.ver', 'reportes.operativos.ver', 'reportes.costos.ver',
     'reportes.exportar', 'reportes.programar',
     'combustibles.ver', 'combustibles.registrar', 'combustibles.editar',
+    'bitacora.ver', 'bitacora.registrar', 'bitacora.eliminar',
     'tecnovigilancia.ver', 'tecnovigilancia.registrar', 'tecnovigilancia.reportar',
     'automatizador.ver', 'automatizador.gestionar', 'automatizador.bitacora.ver',
   ],
@@ -253,6 +259,7 @@ export const ROLE_MATRIX: Record<RoleCode, readonly PermissionCode[]> = {
     'reportes.dashboard.ver', 'reportes.operativos.ver', 'reportes.costos.ver',
     'reportes.exportar', 'reportes.programar',
     'combustibles.ver', 'combustibles.registrar', 'combustibles.editar',
+    'bitacora.ver', 'bitacora.registrar',
     'tecnovigilancia.ver', 'tecnovigilancia.registrar',
     'automatizador.ver', 'automatizador.bitacora.ver',
   ],
@@ -275,6 +282,7 @@ export const ROLE_MATRIX: Record<RoleCode, readonly PermissionCode[]> = {
     'historia.ver',
     'reportes.dashboard.ver', 'reportes.operativos.ver', 'reportes.exportar',
     'combustibles.ver', 'combustibles.registrar',
+    'bitacora.ver', 'bitacora.registrar',
     'tecnovigilancia.ver', 'tecnovigilancia.registrar',
   ],
 
@@ -289,6 +297,7 @@ export const ROLE_MATRIX: Record<RoleCode, readonly PermissionCode[]> = {
     'paros.ver', 'paros.registrar',
     'reportes.dashboard.ver',
     'combustibles.ver', 'combustibles.registrar',
+    'bitacora.ver', 'bitacora.registrar',
     'tecnovigilancia.registrar',
   ],
 
@@ -315,6 +324,7 @@ export const ROLE_MATRIX: Record<RoleCode, readonly PermissionCode[]> = {
     'ordenes.ver', 'ordenes.costos.ver', 'ordenes.imprimir',
     'planes.ver',
     'paros.ver',
+    'bitacora.ver',
     'historia.ver',
     'reportes.dashboard.ver', 'reportes.operativos.ver', 'reportes.costos.ver', 'reportes.exportar',
     'combustibles.ver',

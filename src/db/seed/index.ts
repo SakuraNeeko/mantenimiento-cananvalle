@@ -56,6 +56,7 @@ const SEDES_INICIALES = [
 
 const MODULOS_OPCIONALES = [
   { modulo: 'combustibles', habilitado: true },
+  { modulo: 'bitacora', habilitado: false },
   { modulo: 'tecnovigilancia', habilitado: false },
   { modulo: 'automatizador', habilitado: false },
 ];

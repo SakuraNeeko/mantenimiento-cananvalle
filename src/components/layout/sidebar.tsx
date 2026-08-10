@@ -8,6 +8,7 @@ import {
   BarChart3,
   Boxes,
   CalendarClock,
+  Car,
   ClipboardCheck,
   ClipboardList,
   Cog,
@@ -50,6 +51,7 @@ const ICONS: Record<IconName, LucideIcon> = {
   Zap,
   Cog,
   Plug,
+  Car,
 };
 
 export function Sidebar({ grupos, empresa }: { grupos: NavGroup[]; empresa: string }) {

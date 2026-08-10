@@ -194,3 +194,10 @@ export const automationDisparadorEnum = pgEnum('automation_disparador', [
 ]);
 
 export const automationResultadoEnum = pgEnum('automation_resultado', ['EJECUTADA', 'ERROR']);
+
+/* -------------------------------------------------------------------------- */
+/* BITÁCORA DE USO (módulo opcional)                                          */
+/* -------------------------------------------------------------------------- */
+
+/** Un registro de uso se abre al sacar el activo y se cierra al devolverlo. */
+export const usageLogEstadoEnum = pgEnum('usage_log_estado', ['ABIERTO', 'CERRADO']);

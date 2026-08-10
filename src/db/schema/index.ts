@@ -20,3 +20,4 @@ export * from './tecnovigilancia';
 export * from './sync';
 export * from './automatizador';
 export * from './integraciones';
+export * from './usage-logs';
