@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import { auth } from '@/lib/auth';
+import { primeraRutaVisible } from '@/lib/auth/post-login-redirect';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { LoginForm } from './login-form';
 
@@ -8,7 +9,7 @@ export const metadata: Metadata = { title: 'Iniciar sesión' };
 
 export default async function LoginPage() {
   const session = await auth();
-  if (session?.user) redirect('/dashboard');
+  if (session?.user) redirect(await primeraRutaVisible(session));
 
   return (
     <Card>

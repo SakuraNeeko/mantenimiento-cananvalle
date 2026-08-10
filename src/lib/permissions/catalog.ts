@@ -181,6 +181,7 @@ export const ROLE_CODES = [
   'ALMACEN',
   'SOLIC',
   'AUDITOR',
+  'GUARDIA',
 ] as const;
 
 export type RoleCode = (typeof ROLE_CODES)[number];
@@ -196,6 +197,7 @@ export const ROLE_DEFS: Record<RoleCode, { nombre: string; descripcion: string; 
   ALMACEN: { nombre: 'Almacenista', descripcion: 'Administra existencias y movimientos de kárdex', scope: 'SEDE' },
   SOLIC: { nombre: 'Solicitante', descripcion: 'Reporta fallas y sigue sus solicitudes', scope: 'PROPIO' },
   AUDITOR: { nombre: 'Auditor', descripcion: 'Consulta todo sin capacidad de escritura', scope: 'TENANT' },
+  GUARDIA: { nombre: 'Guardia', descripcion: 'Registra entrada y salida de vehículos y equipos de su finca', scope: 'SEDE' },
 };
 
 /**
@@ -331,4 +333,7 @@ export const ROLE_MATRIX: Record<RoleCode, readonly PermissionCode[]> = {
     'tecnovigilancia.ver',
     'automatizador.ver', 'automatizador.bitacora.ver',
   ],
+
+  /** Guardia de finca: solo la Bitácora de uso, restringida a su(s) sede(s) asignada(s). */
+  GUARDIA: ['bitacora.ver', 'bitacora.registrar'],
 };

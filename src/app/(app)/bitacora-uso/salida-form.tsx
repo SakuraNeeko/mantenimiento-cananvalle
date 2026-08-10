@@ -14,15 +14,23 @@ import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import { etiquetaCampoLectura } from '@/lib/combustibles/medidor';
 import type { OpcionesBitacora } from './actions';
-import type { SalidaFormValues } from '@/lib/validators/bitacora';
+import { DESTINO_OTRO, type SalidaFormValues } from '@/lib/validators/bitacora';
 
-const formSchema = z.object({
-  assetId: z.string().trim().min(1),
-  responsableUserId: z.string().trim().min(1),
-  proposito: z.string().trim().min(3),
-  lecturaSalida: z.string().trim().optional(),
-  observaciones: z.string().trim().optional(),
-});
+const formSchema = z
+  .object({
+    assetId: z.string().trim().min(1),
+    responsableId: z.string().trim().min(1),
+    origenSiteId: z.string().trim().min(1),
+    destino: z.string().trim().min(1),
+    destinoOtro: z.string().trim().optional(),
+    proposito: z.string().trim().min(3),
+    lecturaSalida: z.string().trim().optional(),
+    observaciones: z.string().trim().optional(),
+  })
+  .refine((v) => v.destino !== DESTINO_OTRO || Boolean(v.destinoOtro?.trim()), {
+    message: 'Especifica el destino.',
+    path: ['destinoOtro'],
+  });
 
 export function SalidaForm({
   opciones,
@@ -39,11 +47,12 @@ export function SalidaForm({
 
   const form = useForm<SalidaFormValues>({
     resolver: zodResolver(formSchema),
-    defaultValues: { assetId: assetIdInicial ?? '', responsableUserId: '', proposito: '' },
+    defaultValues: { assetId: assetIdInicial ?? '', responsableId: '', origenSiteId: '', destino: '', proposito: '' },
   });
 
   const assetSeleccionado = opciones.assets.find((a) => a.value === form.watch('assetId'));
   const etiquetaLectura = etiquetaCampoLectura(assetSeleccionado?.tipoLectura ?? null, assetSeleccionado?.simboloUom ?? null);
+  const destinoEsOtro = form.watch('destino') === DESTINO_OTRO;
 
   async function onSubmit(valores: SalidaFormValues) {
     const formData = new FormData();
@@ -73,8 +82,8 @@ export function SalidaForm({
             </div>
             <div className="space-y-1">
               <Label>Responsable</Label>
-              <Select value={form.watch('responsableUserId')} onValueChange={(v) => form.setValue('responsableUserId', v)}>
-                <SelectTrigger aria-invalid={Boolean(form.formState.errors.responsableUserId)}>
+              <Select value={form.watch('responsableId')} onValueChange={(v) => form.setValue('responsableId', v)}>
+                <SelectTrigger aria-invalid={Boolean(form.formState.errors.responsableId)}>
                   <SelectValue placeholder="Selecciona…" />
                 </SelectTrigger>
                 <SelectContent>
@@ -86,9 +95,53 @@ export function SalidaForm({
                 </SelectContent>
               </Select>
             </div>
+            <div className="space-y-1">
+              <Label>Lugar de origen</Label>
+              <Select value={form.watch('origenSiteId')} onValueChange={(v) => form.setValue('origenSiteId', v)}>
+                <SelectTrigger aria-invalid={Boolean(form.formState.errors.origenSiteId)}>
+                  <SelectValue placeholder="Selecciona la finca…" />
+                </SelectTrigger>
+                <SelectContent>
+                  {opciones.sites.map((o) => (
+                    <SelectItem key={o.value} value={o.value}>
+                      {o.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1">
+              <Label>Destino</Label>
+              <Select
+                value={form.watch('destino')}
+                onValueChange={(v) => {
+                  form.setValue('destino', v);
+                  if (v !== DESTINO_OTRO) form.setValue('destinoOtro', '');
+                }}
+              >
+                <SelectTrigger aria-invalid={Boolean(form.formState.errors.destino)}>
+                  <SelectValue placeholder="Selecciona…" />
+                </SelectTrigger>
+                <SelectContent>
+                  {opciones.sites.map((o) => (
+                    <SelectItem key={o.value} value={o.value}>
+                      {o.label}
+                    </SelectItem>
+                  ))}
+                  <SelectItem value={DESTINO_OTRO}>Otro</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            {destinoEsOtro ? (
+              <div className="space-y-1 col-span-2">
+                <Label htmlFor="destinoOtro">Especifique</Label>
+                <Input id="destinoOtro" {...form.register('destinoOtro')} placeholder="¿A dónde va?" aria-invalid={Boolean(form.formState.errors.destinoOtro)} />
+                {form.formState.errors.destinoOtro ? <p className="text-2xs text-destructive">{form.formState.errors.destinoOtro.message}</p> : null}
+              </div>
+            ) : null}
             <div className="space-y-1 col-span-2">
-              <Label htmlFor="proposito">Propósito / destino</Label>
-              <Input id="proposito" {...form.register('proposito')} placeholder="Ej. transporte de personal a Finca 2" aria-invalid={Boolean(form.formState.errors.proposito)} />
+              <Label htmlFor="proposito">Propósito</Label>
+              <Input id="proposito" {...form.register('proposito')} placeholder="Ej. transporte de personal" aria-invalid={Boolean(form.formState.errors.proposito)} />
               {form.formState.errors.proposito ? <p className="text-2xs text-destructive">{form.formState.errors.proposito.message}</p> : null}
             </div>
             <div className="space-y-1">

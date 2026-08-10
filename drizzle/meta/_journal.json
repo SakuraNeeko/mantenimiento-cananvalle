@@ -113,6 +113,27 @@
       "when": 1786371761205,
       "tag": "0015_bitacora_uso",
       "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "7",
+      "when": 1786377361894,
+      "tag": "0016_bitacora_origen_destino",
+      "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1786378251820,
+      "tag": "0017_bitacora_responsable_catalogo",
+      "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1786378334318,
+      "tag": "0018_bitacora_responsable_cleanup",
+      "breakpoints": true
     }
   ]
 }

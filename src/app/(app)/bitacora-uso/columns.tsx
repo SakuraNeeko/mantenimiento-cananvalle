@@ -11,6 +11,10 @@ export type BitacoraRow = {
   assetCodigo: string | null;
   assetNombre: string | null;
   responsableNombre: string | null;
+  origenNombre: string | null;
+  destinoNombre: string | null;
+  destinoOtro: string | null;
+  llegadaNombre: string | null;
   proposito: string;
   estado: string;
   fechaSalida: Date;
@@ -30,9 +34,27 @@ export const bitacoraColumns: ColumnDef<BitacoraRow, unknown>[] = [
     meta: { label: 'Responsable', tipo: 'texto' } satisfies ColumnMeta,
   },
   {
+    accessorKey: 'origenNombre',
+    header: 'Origen',
+    meta: { label: 'Origen', tipo: 'texto' } satisfies ColumnMeta,
+    cell: ({ row }) => row.original.origenNombre ?? <span className="text-muted-foreground">—</span>,
+  },
+  {
+    accessorKey: 'destinoNombre',
+    header: 'Destino',
+    meta: { label: 'Destino', tipo: 'texto' } satisfies ColumnMeta,
+    cell: ({ row }) => row.original.destinoNombre ?? row.original.destinoOtro ?? <span className="text-muted-foreground">—</span>,
+  },
+  {
+    accessorKey: 'llegadaNombre',
+    header: 'Llegada',
+    meta: { label: 'Llegada', tipo: 'texto', ocultaPorDefecto: true } satisfies ColumnMeta,
+    cell: ({ row }) => row.original.llegadaNombre ?? <span className="text-muted-foreground">—</span>,
+  },
+  {
     accessorKey: 'proposito',
     header: 'Propósito',
-    meta: { label: 'Propósito', tipo: 'texto' } satisfies ColumnMeta,
+    meta: { label: 'Propósito', tipo: 'texto', ocultaPorDefecto: true } satisfies ColumnMeta,
   },
   {
     accessorKey: 'estado',

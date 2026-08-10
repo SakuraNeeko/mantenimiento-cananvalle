@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
@@ -22,6 +23,10 @@ type Bitacora = {
   assetCodigo: string | null;
   assetNombre: string | null;
   responsableNombre: string | null;
+  origenNombre: string | null;
+  destinoNombre: string | null;
+  destinoOtro: string | null;
+  llegadaNombre: string | null;
   proposito: string;
   estado: string;
   fechaSalida: Date;
@@ -33,19 +38,33 @@ type Bitacora = {
   observaciones: string | null;
 };
 
-export function BitacoraDetalleClient({ bitacora, puedeRegistrar }: { bitacora: Bitacora; puedeRegistrar: boolean }) {
+export function BitacoraDetalleClient({
+  bitacora,
+  sites,
+  puedeRegistrar,
+}: {
+  bitacora: Bitacora;
+  sites: { value: string; label: string }[];
+  puedeRegistrar: boolean;
+}) {
   const router = useRouter();
   const [dialogAbierto, setDialogAbierto] = React.useState(false);
   const [procesando, setProcesando] = React.useState(false);
+  const [llegadaSiteId, setLlegadaSiteId] = React.useState('');
+  const [errorLlegada, setErrorLlegada] = React.useState(false);
   const [lecturaRegreso, setLecturaRegreso] = React.useState('');
   const [observaciones, setObservaciones] = React.useState('');
   const [foto, setFoto] = React.useState<File | null>(null);
 
   async function confirmarRegreso() {
+    if (!llegadaSiteId) {
+      setErrorLlegada(true);
+      return;
+    }
     setProcesando(true);
     const formData = new FormData();
     if (foto) formData.append('foto', foto);
-    const resultado = await registrarRegreso(bitacora.id, { lecturaRegreso: lecturaRegreso || undefined, observaciones: observaciones || undefined }, formData);
+    const resultado = await registrarRegreso(bitacora.id, { llegadaSiteId, lecturaRegreso: lecturaRegreso || undefined, observaciones: observaciones || undefined }, formData);
     setProcesando(false);
     if (!resultado.ok) {
       toast.error(resultado.error);
@@ -70,6 +89,14 @@ export function BitacoraDetalleClient({ bitacora, puedeRegistrar }: { bitacora: 
               <p>{bitacora.responsableNombre}</p>
             </div>
             <div>
+              <p className="text-2xs text-muted-foreground">Origen</p>
+              <p>{bitacora.origenNombre ?? '—'}</p>
+            </div>
+            <div>
+              <p className="text-2xs text-muted-foreground">Destino</p>
+              <p>{bitacora.destinoNombre ?? bitacora.destinoOtro ?? '—'}</p>
+            </div>
+            <div>
               <p className="text-2xs text-muted-foreground">Propósito</p>
               <p>{bitacora.proposito}</p>
             </div>
@@ -87,6 +114,12 @@ export function BitacoraDetalleClient({ bitacora, puedeRegistrar }: { bitacora: 
               <div>
                 <p className="text-2xs text-muted-foreground">Regreso</p>
                 <p>{fmtDateTime(bitacora.fechaRegreso)}</p>
+              </div>
+            ) : null}
+            {bitacora.llegadaNombre ? (
+              <div>
+                <p className="text-2xs text-muted-foreground">Llegada a</p>
+                <p>{bitacora.llegadaNombre}</p>
               </div>
             ) : null}
             {bitacora.lecturaRegreso ? (
@@ -137,6 +170,28 @@ export function BitacoraDetalleClient({ bitacora, puedeRegistrar }: { bitacora: 
             <DialogTitle>Registrar regreso</DialogTitle>
           </DialogHeader>
           <div className="space-y-3">
+            <div className="space-y-1">
+              <Label>Llegada a</Label>
+              <Select
+                value={llegadaSiteId}
+                onValueChange={(v) => {
+                  setLlegadaSiteId(v);
+                  setErrorLlegada(false);
+                }}
+              >
+                <SelectTrigger aria-invalid={errorLlegada}>
+                  <SelectValue placeholder="Selecciona la finca…" />
+                </SelectTrigger>
+                <SelectContent>
+                  {sites.map((o) => (
+                    <SelectItem key={o.value} value={o.value}>
+                      {o.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {errorLlegada ? <p className="text-2xs text-destructive">Selecciona la finca de llegada.</p> : null}
+            </div>
             <div className="space-y-1">
               <Label>Lectura de regreso</Label>
               <Input value={lecturaRegreso} onChange={(e) => setLecturaRegreso(e.target.value)} placeholder="Opcional" />

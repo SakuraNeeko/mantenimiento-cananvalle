@@ -1,10 +1,10 @@
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
-import { hasPermission, requirePermission } from '@/lib/permissions';
+import { assertSiteAccess, hasPermission, requirePermission } from '@/lib/permissions';
 import { getCurrentTenant } from '@/lib/tenant';
 import { requireModulo } from '@/lib/tenant/modules';
 import { PageHeader } from '@/components/layout/page-header';
-import { obtenerBitacoraDetalle } from '../actions';
+import { obtenerBitacoraDetalle, obtenerOpcionesBitacora } from '../actions';
 import { BitacoraDetalleClient } from './bitacora-detalle-client';
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
@@ -21,11 +21,19 @@ export default async function BitacoraDetallePage({ params }: { params: Promise<
 
   const bitacora = await obtenerBitacoraDetalle(id);
   if (!bitacora) notFound();
+  // Oculto en el listado no basta (§8): bloquea también la URL directa a un registro de otra sede,
+  // salvo que seas quien lo registró (igual que Paros; el responsable/chofer no necesariamente tiene cuenta en el sistema).
+  if (bitacora.createdBy !== session.user.id) {
+    assertSiteAccess(session, bitacora.assetSiteId ?? null);
+  }
+
+  const puedeRegistrar = hasPermission(session, 'bitacora.registrar');
+  const opciones = puedeRegistrar ? await obtenerOpcionesBitacora().catch(() => ({ assets: [], responsables: [], sites: [] })) : { assets: [], responsables: [], sites: [] };
 
   return (
     <div className="mx-auto max-w-3xl space-y-3">
       <PageHeader titulo={`${bitacora.assetCodigo} — ${bitacora.assetNombre}`} descripcion={bitacora.proposito} />
-      <BitacoraDetalleClient bitacora={bitacora} puedeRegistrar={hasPermission(session, 'bitacora.registrar')} />
+      <BitacoraDetalleClient bitacora={bitacora} sites={opciones.sites} puedeRegistrar={puedeRegistrar} />
     </div>
   );
 }
