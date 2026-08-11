@@ -10,6 +10,8 @@ import { buildLimitOffset, buildOrderBy, buildWhere } from '@/lib/query-builder'
 import { parseTableQuery } from '@/components/data-table/types';
 import { PageHeader } from '@/components/layout/page-header';
 import { BitacoraTable } from './bitacora-table';
+import { BitacoraChoferView } from './bitacora-chofer-view';
+import { obtenerBitacoraAbiertos } from './actions';
 import type { BitacoraRow } from './columns';
 
 export const metadata: Metadata = { title: 'Bitácora de uso' };
@@ -28,6 +30,19 @@ export default async function BitacoraUsoPage({ searchParams }: { searchParams: 
   const session = await requirePermission('bitacora.ver');
   const tenant = await getCurrentTenant();
   await requireModulo(tenant.id, 'bitacora');
+
+  // El Chofer (antes "Guardia") solo necesita registrar salidas y cerrar sus viajes abiertos:
+  // se le evita el listado completo (búsqueda, filtros, columnas, export) y se le da una vista mínima.
+  if (session.user.roles.includes('GUARDIA')) {
+    const abiertos = await obtenerBitacoraAbiertos();
+    return (
+      <div className="mx-auto w-full max-w-md space-y-3">
+        <PageHeader titulo="Bitácora de uso" descripcion="Registra la salida de un vehículo o cierra un viaje en curso." />
+        <BitacoraChoferView abiertos={abiertos} />
+      </div>
+    );
+  }
+
   const query = parseTableQuery(await searchParams);
   const { scope, userId, siteIds } = scopeDescriptor(session);
 

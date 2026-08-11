@@ -197,7 +197,7 @@ export const ROLE_DEFS: Record<RoleCode, { nombre: string; descripcion: string; 
   ALMACEN: { nombre: 'Almacenista', descripcion: 'Administra existencias y movimientos de kárdex', scope: 'SEDE' },
   SOLIC: { nombre: 'Solicitante', descripcion: 'Reporta fallas y sigue sus solicitudes', scope: 'PROPIO' },
   AUDITOR: { nombre: 'Auditor', descripcion: 'Consulta todo sin capacidad de escritura', scope: 'TENANT' },
-  GUARDIA: { nombre: 'Guardia', descripcion: 'Registra entrada y salida de vehículos y equipos de su finca', scope: 'SEDE' },
+  GUARDIA: { nombre: 'Chofer', descripcion: 'Registra la salida y el regreso de vehículos de su finca', scope: 'SEDE' },
 };
 
 /**

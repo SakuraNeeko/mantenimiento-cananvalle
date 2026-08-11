@@ -329,6 +329,50 @@ export async function obtenerBitacoraDetalle(id: string) {
   return fila ?? null;
 }
 
+export type BitacoraAbierta = {
+  id: string;
+  assetCodigo: string | null;
+  assetNombre: string | null;
+  destinoNombre: string | null;
+  destinoOtro: string | null;
+  fechaSalida: Date;
+};
+
+/**
+ * Versión reducida del listado, usada por la vista simplificada del Chofer (§ solo lo necesario):
+ * sin paginación ni columnas de detalle, solo lo que necesita para elegir a qué viaje registrarle el regreso.
+ */
+export async function obtenerBitacoraAbiertos(): Promise<BitacoraAbierta[]> {
+  const session = await requirePermission('bitacora.ver');
+  const tenant = await getCurrentTenant();
+  const { scope, userId, siteIds } = scopeDescriptor(session);
+
+  const alcance =
+    scope === 'TENANT'
+      ? undefined
+      : scope === 'SEDE'
+        ? or(siteIds.length > 0 ? inArray(locations.siteId, siteIds) : undefined, isNull(locations.siteId), eq(assetUsageLogs.createdBy, userId))
+        : eq(assetUsageLogs.createdBy, userId);
+
+  const filas = await db
+    .select({
+      id: assetUsageLogs.id,
+      assetCodigo: assets.codigo,
+      assetNombre: assets.nombre,
+      destinoNombre: destinoSites.nombre,
+      destinoOtro: assetUsageLogs.destinoOtro,
+      fechaSalida: assetUsageLogs.fechaSalida,
+    })
+    .from(assetUsageLogs)
+    .innerJoin(assets, eq(assets.id, assetUsageLogs.assetId))
+    .leftJoin(locations, eq(locations.id, assets.locationId))
+    .leftJoin(destinoSites, eq(destinoSites.id, assetUsageLogs.destinoSiteId))
+    .where(and(eq(assetUsageLogs.tenantId, tenant.id), isNull(assetUsageLogs.deletedAt), eq(assetUsageLogs.estado, 'ABIERTO'), alcance))
+    .orderBy(desc(assetUsageLogs.fechaSalida));
+
+  return filas;
+}
+
 export async function obtenerBitacoraPorAsset(assetId: string) {
   await requirePermission('activos.ver');
   return db

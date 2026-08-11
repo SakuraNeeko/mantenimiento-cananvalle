@@ -12,7 +12,6 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
-import { etiquetaCampoLectura } from '@/lib/combustibles/medidor';
 import type { OpcionesBitacora } from './actions';
 import { DESTINO_OTRO, type SalidaFormValues } from '@/lib/validators/bitacora';
 
@@ -51,7 +50,6 @@ export function SalidaForm({
   });
 
   const assetSeleccionado = opciones.assets.find((a) => a.value === form.watch('assetId'));
-  const etiquetaLectura = etiquetaCampoLectura(assetSeleccionado?.tipoLectura ?? null, assetSeleccionado?.simboloUom ?? null);
   const destinoEsOtro = form.watch('destino') === DESTINO_OTRO;
 
   async function onSubmit(valores: SalidaFormValues) {
@@ -145,7 +143,7 @@ export function SalidaForm({
               {form.formState.errors.proposito ? <p className="text-2xs text-destructive">{form.formState.errors.proposito.message}</p> : null}
             </div>
             <div className="space-y-1">
-              <Label htmlFor="lecturaSalida">{etiquetaLectura}</Label>
+              <Label htmlFor="lecturaSalida">Kilometraje</Label>
               <Input id="lecturaSalida" {...form.register('lecturaSalida')} placeholder="Opcional" />
               {assetSeleccionado?.tipoLectura ? <p className="text-2xs text-muted-foreground">Alimenta el medidor del activo en Infraestructura.</p> : null}
             </div>

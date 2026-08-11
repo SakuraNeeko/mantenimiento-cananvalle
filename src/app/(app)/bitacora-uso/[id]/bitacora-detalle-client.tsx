@@ -106,7 +106,7 @@ export function BitacoraDetalleClient({
             </div>
             {bitacora.lecturaSalida ? (
               <div>
-                <p className="text-2xs text-muted-foreground">Lectura de salida</p>
+                <p className="text-2xs text-muted-foreground">Kilometraje de salida</p>
                 <p>{bitacora.lecturaSalida}</p>
               </div>
             ) : null}
@@ -124,7 +124,7 @@ export function BitacoraDetalleClient({
             ) : null}
             {bitacora.lecturaRegreso ? (
               <div>
-                <p className="text-2xs text-muted-foreground">Lectura de regreso</p>
+                <p className="text-2xs text-muted-foreground">Kilometraje de llegada</p>
                 <p>{bitacora.lecturaRegreso}</p>
               </div>
             ) : null}
@@ -193,7 +193,7 @@ export function BitacoraDetalleClient({
               {errorLlegada ? <p className="text-2xs text-destructive">Selecciona la finca de llegada.</p> : null}
             </div>
             <div className="space-y-1">
-              <Label>Lectura de regreso</Label>
+              <Label>Kilometraje</Label>
               <Input value={lecturaRegreso} onChange={(e) => setLecturaRegreso(e.target.value)} placeholder="Opcional" />
             </div>
             <div className="space-y-1">
