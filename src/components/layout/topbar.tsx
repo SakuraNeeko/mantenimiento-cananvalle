@@ -18,6 +18,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
+import { ROLE_DEFS, type RoleCode } from '@/lib/permissions/catalog';
 
 export type TopbarProps = {
   nombre: string;
@@ -77,7 +78,7 @@ export function Topbar({ nombre, email, roles, sedes, sedeActual, mostrarTodasLa
               <div className="mt-1.5 flex flex-wrap gap-1">
                 {roles.map((r) => (
                   <Badge key={r} variant="secondary">
-                    {r}
+                    {ROLE_DEFS[r as RoleCode]?.nombre ?? r}
                   </Badge>
                 ))}
               </div>

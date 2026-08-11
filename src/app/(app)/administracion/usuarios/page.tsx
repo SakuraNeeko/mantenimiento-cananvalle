@@ -49,7 +49,7 @@ export default async function UsuariosPage({
         activo: users.activo,
         lastLoginAt: users.lastLoginAt,
         roles: sql<string>`(
-          select string_agg(r.codigo, ', ' order by r.codigo)
+          select string_agg(r.nombre, ', ' order by r.codigo)
           from user_roles ur join roles r on r.id = ur.role_id
           where ur.user_id = ${users.id}
         )`,
