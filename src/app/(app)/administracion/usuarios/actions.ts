@@ -5,6 +5,7 @@ import { and, eq, isNull, sql } from 'drizzle-orm';
 import { dbTx, db, type DbTx } from '@/db';
 import { roles as rolesTable, userRoles, userSiteAccess, users } from '@/db/schema';
 import { requirePermission } from '@/lib/permissions';
+import { codigosDeRoles, codigosDeRolesDeUsuario, esAdmin, incluyeRolProtegido } from '@/lib/permissions/roles-protegidos';
 import { getCurrentTenant } from '@/lib/tenant';
 import { hashPassword } from '@/lib/auth/password';
 import { buildDiff, writeAudit } from '@/lib/audit';
@@ -17,6 +18,7 @@ import {
 
 const PERMISO = 'admin.usuarios.gestionar';
 const RUTA = '/administracion/usuarios';
+const ERROR_ROL_PROTEGIDO = 'No tienes permiso para gestionar cuentas de Administrador o Gerente de Mantenimiento.';
 
 export type AccionResultado = { ok: true } | { ok: false; error: string };
 
@@ -63,6 +65,11 @@ export async function crearUsuario(input: CrearUsuarioInput): Promise<AccionResu
     return { ok: false, error: parsed.error.issues[0]?.message ?? 'Datos inválidos.' };
   }
   const data = parsed.data;
+
+  if (!esAdmin(session) && incluyeRolProtegido(await codigosDeRoles(data.roleIds))) {
+    return { ok: false, error: ERROR_ROL_PROTEGIDO };
+  }
+
   const tenant = await getCurrentTenant();
   const scopePorRol = await cargarScopePorRol(tenant.id, data.roleIds);
 
@@ -127,6 +134,13 @@ export async function actualizarUsuario(input: ActualizarUsuarioInput): Promise<
     .limit(1);
   if (!antes) return { ok: false, error: 'El usuario ya no existe.' };
 
+  if (!esAdmin(session)) {
+    const [codigosActuales, codigosNuevos] = await Promise.all([codigosDeRolesDeUsuario(data.id), codigosDeRoles(data.roleIds)]);
+    if (incluyeRolProtegido(codigosActuales) || incluyeRolProtegido(codigosNuevos)) {
+      return { ok: false, error: ERROR_ROL_PROTEGIDO };
+    }
+  }
+
   const scopePorRol = await cargarScopePorRol(tenant.id, data.roleIds);
   const cambiaPassword = data.password.length > 0;
 
@@ -186,6 +200,9 @@ export async function cambiarEstadoUsuario(id: string, activo: boolean): Promise
   if (id === session.user.id) {
     return { ok: false, error: 'No puedes desactivar tu propia cuenta.' };
   }
+  if (!esAdmin(session) && incluyeRolProtegido(await codigosDeRolesDeUsuario(id))) {
+    return { ok: false, error: ERROR_ROL_PROTEGIDO };
+  }
   const tenant = await getCurrentTenant();
 
   const [fila] = await dbTx
@@ -216,6 +233,9 @@ export async function eliminarUsuario(id: string): Promise<AccionResultado> {
   const session = await requirePermission(PERMISO);
   if (id === session.user.id) {
     return { ok: false, error: 'No puedes eliminar tu propia cuenta.' };
+  }
+  if (!esAdmin(session) && incluyeRolProtegido(await codigosDeRolesDeUsuario(id))) {
+    return { ok: false, error: ERROR_ROL_PROTEGIDO };
   }
   const tenant = await getCurrentTenant();
 

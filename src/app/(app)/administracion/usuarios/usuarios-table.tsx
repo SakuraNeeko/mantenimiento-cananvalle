@@ -15,7 +15,12 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { DataTable } from '@/components/data-table';
 import type { ColumnFilter, SortRule, TableResult } from '@/components/data-table/types';
+import { ROLES_PROTEGIDOS, type RoleCode } from '@/lib/permissions/catalog';
 import { usuarioColumns, type UsuarioRow } from './columns';
+
+function esFilaProtegida(fila: UsuarioRow): boolean {
+  return (fila.rolesCodigos ?? '').split(',').some((c) => ROLES_PROTEGIDOS.includes(c as RoleCode));
+}
 import { UsuarioForm } from './usuario-form';
 import { cambiarEstadoUsuario, eliminarUsuario } from './actions';
 
@@ -30,6 +35,7 @@ export function UsuariosTable({
   roles,
   sites,
   puedeGestionar,
+  puedeGestionarProtegidos,
 }: {
   data: TableResult<UsuarioRow>;
   sort: SortRule[];
@@ -38,6 +44,8 @@ export function UsuariosTable({
   roles: RolOpcion[];
   sites: SedeOpcion[];
   puedeGestionar: boolean;
+  /** Falso para roles como Gerente de Mantenimiento: no gestionan cuentas ADMIN o GERENTE (ver ROLES_PROTEGIDOS). */
+  puedeGestionarProtegidos: boolean;
 }) {
   const router = useRouter();
   const [dialogAbierto, setDialogAbierto] = React.useState(false);
@@ -113,6 +121,7 @@ export function UsuariosTable({
       cell: ({ row }) => {
         const fila = row.original;
         const ocupado = procesando === fila.id;
+        if (!puedeGestionarProtegidos && esFilaProtegida(fila)) return null;
         return (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -153,7 +162,7 @@ export function UsuariosTable({
 
     return [...usuarioColumns, columnaAcciones];
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [puedeGestionar, procesando]);
+  }, [puedeGestionar, puedeGestionarProtegidos, procesando]);
 
   return (
     <>

@@ -11,6 +11,7 @@ export type UsuarioRow = {
   email: string;
   cargo: string | null;
   roles: string | null;
+  rolesCodigos: string | null;
   sede: string | null;
   activo: boolean;
   lastLoginAt: Date | null;

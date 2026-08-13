@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { db } from '@/db';
 import { users } from '@/db/schema';
 import { requirePermission } from '@/lib/permissions';
+import { codigosDeRolesDeUsuario, esAdmin, incluyeRolProtegido } from '@/lib/permissions/roles-protegidos';
 import { getCurrentTenant } from '@/lib/tenant';
 import { writeAudit } from '@/lib/audit';
 import { ForbiddenError, UnauthorizedError } from '@/lib/permissions/guard';
@@ -20,6 +21,11 @@ export async function POST(_request: Request, { params }: { params: Promise<{ id
   try {
     const session = await requirePermission('admin.usuarios.gestionar');
     const { id } = paramsSchema.parse(await params);
+
+    if (!esAdmin(session) && incluyeRolProtegido(await codigosDeRolesDeUsuario(id))) {
+      return NextResponse.json({ error: 'No tienes permiso para gestionar cuentas de Administrador o Gerente de Mantenimiento.' }, { status: 403 });
+    }
+
     const tenant = await getCurrentTenant();
 
     const [row] = await db

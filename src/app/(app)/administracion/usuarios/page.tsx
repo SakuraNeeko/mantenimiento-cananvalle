@@ -3,6 +3,8 @@ import { and, eq, isNull, sql } from 'drizzle-orm';
 import { db } from '@/db';
 import { roles, sites, users } from '@/db/schema';
 import { hasPermission, requirePermission } from '@/lib/permissions';
+import { ROLES_PROTEGIDOS, type RoleCode } from '@/lib/permissions/catalog';
+import { esAdmin } from '@/lib/permissions/roles-protegidos';
 import { getCurrentTenant } from '@/lib/tenant';
 import { buildLimitOffset, buildOrderBy, buildWhere } from '@/lib/query-builder';
 import { parseTableQuery } from '@/components/data-table/types';
@@ -53,6 +55,11 @@ export default async function UsuariosPage({
           from user_roles ur join roles r on r.id = ur.role_id
           where ur.user_id = ${users.id}
         )`,
+        rolesCodigos: sql<string>`(
+          select string_agg(r.codigo, ',' order by r.codigo)
+          from user_roles ur join roles r on r.id = ur.role_id
+          where ur.user_id = ${users.id}
+        )`,
       })
       .from(users)
       .leftJoin(sites, eq(sites.id, users.siteDefaultId))
@@ -80,6 +87,11 @@ export default async function UsuariosPage({
     pageSize: query.pageSize,
   };
 
+  const puedeGestionarProtegidos = esAdmin(session);
+  // Un Gerente puede crear/editar usuarios, pero nunca asignar el rol ADMIN o GERENTE (§8: se
+  // refuerza también en el servidor, esto solo evita que el checkbox exista en el formulario).
+  const rolesAsignables = puedeGestionarProtegidos ? rolesDb : rolesDb.filter((r) => !ROLES_PROTEGIDOS.includes(r.codigo as RoleCode));
+
   return (
     <div className="flex h-full flex-col gap-3">
       <PageHeader titulo="Usuarios" descripcion="Personas con acceso al sistema y los roles que tienen asignados." />
@@ -89,9 +101,10 @@ export default async function UsuariosPage({
           sort={query.sort}
           filters={query.filters}
           search={query.search}
-          roles={rolesDb}
+          roles={rolesAsignables}
           sites={sitesDb}
           puedeGestionar={hasPermission(session, 'admin.usuarios.gestionar')}
+          puedeGestionarProtegidos={puedeGestionarProtegidos}
         />
       </div>
     </div>

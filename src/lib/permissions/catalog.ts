@@ -186,6 +186,14 @@ export const ROLE_CODES = [
 
 export type RoleCode = (typeof ROLE_CODES)[number];
 
+/**
+ * Roles que solo un ADMIN puede asignar, o cuyas cuentas solo un ADMIN puede
+ * crear/editar/desactivar/eliminar. Protege contra escalamiento de privilegios
+ * (ej. Gerente de Mantenimiento creándose otro Gerente, o tocando cuentas ADMIN)
+ * cuando a un rol no-ADMIN se le concede `admin.usuarios.gestionar`.
+ */
+export const ROLES_PROTEGIDOS: readonly RoleCode[] = ['ADMIN', 'GERENTE'];
+
 export type ScopeValue = 'PROPIO' | 'SEDE' | 'TENANT';
 
 export const ROLE_DEFS: Record<RoleCode, { nombre: string; descripcion: string; scope: ScopeValue }> = {
@@ -209,7 +217,7 @@ export const ROLE_MATRIX: Record<RoleCode, readonly PermissionCode[]> = {
   ADMIN: PERMISSION_CODES,
 
   GERENTE: [
-    'admin.usuarios.ver', 'admin.auditoria.ver',
+    'admin.usuarios.ver', 'admin.usuarios.gestionar', 'admin.auditoria.ver',
     'infra.catalogos.ver', 'infra.catalogos.crear', 'infra.catalogos.editar', 'infra.catalogos.eliminar',
     'infra.tarifas.ver', 'infra.contratos.gestionar', 'infra.importar', 'infra.exportar',
     'activos.ver', 'activos.crear', 'activos.editar', 'activos.eliminar', 'activos.trasladar',
