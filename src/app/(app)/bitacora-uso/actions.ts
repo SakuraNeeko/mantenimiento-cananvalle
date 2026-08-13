@@ -6,7 +6,7 @@ import type { Session } from 'next-auth';
 import { and, desc, eq, inArray, isNull, or } from 'drizzle-orm';
 import { alias } from 'drizzle-orm/pg-core';
 import { db, dbTx } from '@/db';
-import { assetMeters, assetUsageLogs, assets, locations, meterReadings, meters, responsibles, sites, uoms } from '@/db/schema';
+import { assetClasses, assetMeters, assetUsageLogs, assets, locations, meterReadings, meters, responsibles, sites, uoms } from '@/db/schema';
 import { requirePermission, scopeDescriptor } from '@/lib/permissions';
 import { getCurrentTenant } from '@/lib/tenant';
 import { requireModulo } from '@/lib/tenant/modules';
@@ -37,6 +37,25 @@ async function assertAccesoActivo(session: Session, assetId: string): Promise<st
 
   if (!fila?.siteId) return null;
   if (!siteIds.includes(fila.siteId)) return 'No tienes acceso a este activo desde tu sede.';
+  return null;
+}
+
+/**
+ * Mismo criterio que assertAccesoActivo: ocultar el camión en el selector no basta,
+ * el Chofer (GUARDIA) tampoco puede registrar uso de un activo que no sea camión
+ * aunque adivine el id.
+ */
+async function assertClaseCamion(session: Session, assetId: string): Promise<string | null> {
+  if (!session.user.roles.includes('GUARDIA')) return null;
+
+  const [fila] = await db
+    .select({ codigo: assetClasses.codigo })
+    .from(assets)
+    .leftJoin(assetClasses, eq(assetClasses.id, assets.claseId))
+    .where(eq(assets.id, assetId))
+    .limit(1);
+
+  if (fila?.codigo !== 'CAMION') return 'Solo puedes registrar el uso de camiones.';
   return null;
 }
 
@@ -96,6 +115,9 @@ export async function registrarSalida(input: SalidaFormValues, formData: FormDat
 
   const errorAcceso = await assertAccesoActivo(session, parsed.data.assetId);
   if (errorAcceso) return { ok: false, error: errorAcceso };
+
+  const errorClase = await assertClaseCamion(session, parsed.data.assetId);
+  if (errorClase) return { ok: false, error: errorClase };
 
   if (!(await validarSite(tenant.id, parsed.data.origenSiteId))) return { ok: false, error: 'La finca de origen no es válida.' };
   const destinoEsOtro = parsed.data.destino === DESTINO_OTRO;
@@ -261,12 +283,16 @@ export async function obtenerOpcionesBitacora(): Promise<OpcionesBitacora> {
   const alcanceActivos =
     scope === 'SEDE' ? or(siteIds.length > 0 ? inArray(locations.siteId, siteIds) : undefined, isNull(locations.siteId)) : undefined;
 
+  // El Chofer (GUARDIA) solo debe ver camiones (§ solo lo necesario): igual que assertClaseCamion.
+  const restriccionClase = session.user.roles.includes('GUARDIA') ? eq(assetClasses.codigo, 'CAMION') : undefined;
+
   const [ast, medidores, resp, sedes] = await Promise.all([
     db
       .select({ value: assets.id, label: assets.nombre, codigo: assets.codigo })
       .from(assets)
       .leftJoin(locations, eq(locations.id, assets.locationId))
-      .where(and(eq(assets.tenantId, tenant.id), isNull(assets.deletedAt), alcanceActivos))
+      .leftJoin(assetClasses, eq(assetClasses.id, assets.claseId))
+      .where(and(eq(assets.tenantId, tenant.id), isNull(assets.deletedAt), alcanceActivos, restriccionClase))
       .orderBy(assets.nombre),
     obtenerMedidoresPorAsset(tenant.id),
     db
@@ -354,6 +380,9 @@ export async function obtenerBitacoraAbiertos(): Promise<BitacoraAbierta[]> {
         ? or(siteIds.length > 0 ? inArray(locations.siteId, siteIds) : undefined, isNull(locations.siteId), eq(assetUsageLogs.createdBy, userId))
         : eq(assetUsageLogs.createdBy, userId);
 
+  // Mismo criterio que obtenerOpcionesBitacora: el Chofer no debe ver viajes abiertos de activos que no sean camiones.
+  const restriccionClase = session.user.roles.includes('GUARDIA') ? eq(assetClasses.codigo, 'CAMION') : undefined;
+
   const filas = await db
     .select({
       id: assetUsageLogs.id,
@@ -367,7 +396,8 @@ export async function obtenerBitacoraAbiertos(): Promise<BitacoraAbierta[]> {
     .innerJoin(assets, eq(assets.id, assetUsageLogs.assetId))
     .leftJoin(locations, eq(locations.id, assets.locationId))
     .leftJoin(destinoSites, eq(destinoSites.id, assetUsageLogs.destinoSiteId))
-    .where(and(eq(assetUsageLogs.tenantId, tenant.id), isNull(assetUsageLogs.deletedAt), eq(assetUsageLogs.estado, 'ABIERTO'), alcance))
+    .leftJoin(assetClasses, eq(assetClasses.id, assets.claseId))
+    .where(and(eq(assetUsageLogs.tenantId, tenant.id), isNull(assetUsageLogs.deletedAt), eq(assetUsageLogs.estado, 'ABIERTO'), alcance, restriccionClase))
     .orderBy(desc(assetUsageLogs.fechaSalida));
 
   return filas;

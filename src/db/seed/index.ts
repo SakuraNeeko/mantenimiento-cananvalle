@@ -86,6 +86,7 @@ const CATALOGOS_SEED: { nombre: string; tabla: PgTable; filas: FilaCatalogoSeed[
     filas: [
       { codigo: 'EQUIPO', nombre: 'Equipo' },
       { codigo: 'VEHICULO', nombre: 'Vehículo' },
+      { codigo: 'CAMION', nombre: 'Camión' },
       { codigo: 'INFRAESTRUCTURA', nombre: 'Infraestructura' },
       { codigo: 'TI', nombre: 'TI' },
       { codigo: 'BIOMEDICO', nombre: 'Biomédico' },
