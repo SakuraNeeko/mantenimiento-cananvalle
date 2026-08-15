@@ -41,6 +41,7 @@ function datosDeFormulario(data: CrearActivoInput) {
     fabricante: data.fabricante ?? null,
     modelo: data.modelo ?? null,
     serie: data.serie ?? null,
+    placa: data.placa ?? null,
     anio: data.anio ?? null,
     fechaCompra: data.fechaCompra ?? null,
     valorCompra: data.valorCompra ?? null,
@@ -244,6 +245,7 @@ export async function obtenerActivoParaEditar(id: string): Promise<ActivoFormVal
     fabricante: fila.fabricante ?? undefined,
     modelo: fila.modelo ?? undefined,
     serie: fila.serie ?? undefined,
+    placa: fila.placa ?? undefined,
     anio: fila.anio ?? undefined,
     fechaCompra: fila.fechaCompra ?? undefined,
     valorCompra: fila.valorCompra ?? undefined,
@@ -259,7 +261,7 @@ export async function obtenerActivoParaEditar(id: string): Promise<ActivoFormVal
 }
 
 export type OpcionesActivo = {
-  clases: { value: string; label: string }[];
+  clases: { value: string; label: string; codigo: string }[];
   locations: { value: string; label: string }[];
   costCenters: { value: string; label: string }[];
   responsibleCenters: { value: string; label: string }[];
@@ -274,7 +276,7 @@ export async function obtenerOpcionesActivo(excluirId?: string): Promise<Opcione
   const tenant = await getCurrentTenant();
 
   const [clases, locs, ccs, rcs, prts, ctrs, padres] = await Promise.all([
-    db.select({ value: assetClasses.id, label: assetClasses.nombre }).from(assetClasses).where(and(eq(assetClasses.tenantId, tenant.id), eq(assetClasses.activo, true), isNull(assetClasses.deletedAt))).orderBy(assetClasses.nombre),
+    db.select({ value: assetClasses.id, label: assetClasses.nombre, codigo: assetClasses.codigo }).from(assetClasses).where(and(eq(assetClasses.tenantId, tenant.id), eq(assetClasses.activo, true), isNull(assetClasses.deletedAt))).orderBy(assetClasses.nombre),
     db.select({ value: locations.id, label: locations.nombre }).from(locations).where(and(eq(locations.tenantId, tenant.id), eq(locations.activo, true), isNull(locations.deletedAt))).orderBy(locations.nombre),
     db.select({ value: costCenters.id, label: costCenters.nombre }).from(costCenters).where(and(eq(costCenters.tenantId, tenant.id), eq(costCenters.activo, true), isNull(costCenters.deletedAt))).orderBy(costCenters.nombre),
     db.select({ value: responsibleCenters.id, label: responsibleCenters.nombre }).from(responsibleCenters).where(and(eq(responsibleCenters.tenantId, tenant.id), eq(responsibleCenters.activo, true), isNull(responsibleCenters.deletedAt))).orderBy(responsibleCenters.nombre),
@@ -294,7 +296,7 @@ export async function obtenerOpcionesActivo(excluirId?: string): Promise<Opcione
   ]);
 
   return {
-    clases: clases.map((c) => ({ value: c.value, label: c.label })),
+    clases: clases.map((c) => ({ value: c.value, label: c.label, codigo: c.codigo })),
     locations: locs.map((l) => ({ value: l.value, label: l.label })),
     costCenters: ccs.map((c) => ({ value: c.value, label: c.label })),
     responsibleCenters: rcs.map((r) => ({ value: r.value, label: r.label })),

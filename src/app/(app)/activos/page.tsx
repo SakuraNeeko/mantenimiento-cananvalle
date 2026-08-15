@@ -16,6 +16,7 @@ const COLUMNAS = {
   codigo: assets.codigo,
   nombre: assets.nombre,
   clase: assetClasses.nombre,
+  placa: assets.placa,
   estado: assets.estado,
   criticidad: assets.criticidad,
   activo: assets.activo,
@@ -38,7 +39,7 @@ export default async function ActivosPage({
     eq(assets.tenantId, tenant.id),
     isNull(assets.deletedAt),
     alcance,
-    buildWhere(COLUMNAS, query.filters, query.search, ['codigo', 'nombre', 'fabricante', 'modelo', 'serie']),
+    buildWhere(COLUMNAS, query.filters, query.search, ['codigo', 'nombre', 'fabricante', 'modelo', 'serie', 'placa']),
   );
   const { limit, offset } = buildLimitOffset(query);
 
@@ -49,6 +50,7 @@ export default async function ActivosPage({
         codigo: assets.codigo,
         nombre: assets.nombre,
         clase: assetClasses.nombre,
+        placa: assets.placa,
         estado: assets.estado,
         criticidad: assets.criticidad,
         ubicacion: locations.nombre,

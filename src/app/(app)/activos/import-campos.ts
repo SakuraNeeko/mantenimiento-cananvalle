@@ -26,6 +26,7 @@ export const ACTIVO_IMPORT_CAMPOS: CampoDefPublico[] = [
   { name: 'fabricante', label: 'Fabricante', tipo: 'texto' },
   { name: 'modelo', label: 'Modelo', tipo: 'texto' },
   { name: 'serie', label: 'Serie', tipo: 'texto' },
+  { name: 'placa', label: 'Placa', tipo: 'texto' },
   { name: 'anio', label: 'Año', tipo: 'numero' },
   { name: 'fechaCompra', label: 'Fecha de compra', tipo: 'fecha' },
   { name: 'valorCompra', label: 'Valor de compra', tipo: 'decimal' },

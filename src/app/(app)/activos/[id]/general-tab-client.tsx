@@ -130,6 +130,7 @@ export function GeneralTabClient({
           { label: 'Fabricante', value: v.fabricante },
           { label: 'Modelo', value: v.modelo },
           { label: 'Serie', value: v.serie },
+          { label: 'Placa', value: v.placa },
           { label: 'Año', value: v.anio },
         ]}
       />

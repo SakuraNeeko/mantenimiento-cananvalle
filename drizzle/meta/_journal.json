@@ -134,6 +134,13 @@
       "when": 1786378334318,
       "tag": "0018_bitacora_responsable_cleanup",
       "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1786754450328,
+      "tag": "0019_new_karen_page",
+      "breakpoints": true
     }
   ]
 }

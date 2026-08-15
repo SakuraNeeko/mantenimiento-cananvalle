@@ -47,6 +47,7 @@ export const activoBaseSchema = z.object({
   fabricante: campoOpcional,
   modelo: campoOpcional,
   serie: campoOpcional,
+  placa: campoOpcional,
   anio: enteroOpcional,
   fechaCompra: campoOpcional,
   valorCompra: decimalOpcional,

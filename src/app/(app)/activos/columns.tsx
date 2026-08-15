@@ -10,6 +10,7 @@ export type ActivoRow = {
   codigo: string;
   nombre: string;
   clase: string | null;
+  placa: string | null;
   estado: string;
   criticidad: 'A' | 'B' | 'C';
   ubicacion: string | null;
@@ -43,6 +44,12 @@ export const activoColumns: ColumnDef<ActivoRow, unknown>[] = [
     header: 'Clase',
     meta: { label: 'Clase', tipo: 'texto' } satisfies ColumnMeta,
     cell: ({ row }) => row.original.clase ?? <span className="text-muted-foreground">—</span>,
+  },
+  {
+    accessorKey: 'placa',
+    header: 'Placa',
+    meta: { label: 'Placa', tipo: 'texto', ocultaPorDefecto: true } satisfies ColumnMeta,
+    cell: ({ row }) => row.original.placa ?? <span className="text-muted-foreground">—</span>,
   },
   {
     accessorKey: 'estado',

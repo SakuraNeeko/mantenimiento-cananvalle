@@ -28,6 +28,7 @@ export default async function ActivoGeneralPage({ params }: { params: Promise<{ 
         fabricante: asset.fabricante ?? undefined,
         modelo: asset.modelo ?? undefined,
         serie: asset.serie ?? undefined,
+        placa: asset.placa ?? undefined,
         anio: asset.anio ?? undefined,
         fechaCompra: asset.fechaCompra ?? undefined,
         valorCompra: asset.valorCompra ?? undefined,

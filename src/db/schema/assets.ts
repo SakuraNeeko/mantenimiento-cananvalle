@@ -53,6 +53,8 @@ export const assets = pgTable(
     fabricante: text('fabricante'),
     modelo: text('modelo'),
     serie: text('serie'),
+    /** Solo aplica a vehículos/camiones; queda vacía para el resto de clases. */
+    placa: text('placa'),
     anio: integer('anio'),
     fechaCompra: date('fecha_compra'),
     valorCompra: numeric('valor_compra', { precision: 18, scale: 4 }),

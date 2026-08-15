@@ -79,6 +79,9 @@ export function ActivoForm({
     defaultValues: valoresPrevios ?? VALORES_INICIALES,
   });
 
+  const claseSeleccionada = opciones.clases.find((c) => c.value === form.watch('claseId'));
+  const requierePlaca = claseSeleccionada?.codigo === 'VEHICULO' || claseSeleccionada?.codigo === 'CAMION';
+
   async function onSubmit(valores: ActivoFormValues) {
     const resultado = modo === 'editar' ? await actualizarActivo({ ...valores, id: activoId! }) : await crearActivo(valores);
 
@@ -189,6 +192,12 @@ export function ActivoForm({
             <Label htmlFor="anio">Año</Label>
             <Input id="anio" type="number" {...form.register('anio')} />
           </div>
+          {requierePlaca ? (
+            <div className="space-y-1">
+              <Label htmlFor="placa">Placa</Label>
+              <Input id="placa" {...form.register('placa')} />
+            </div>
+          ) : null}
         </CardContent>
       </Card>
 
