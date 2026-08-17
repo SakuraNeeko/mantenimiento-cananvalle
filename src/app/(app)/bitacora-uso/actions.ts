@@ -6,7 +6,7 @@ import type { Session } from 'next-auth';
 import { and, desc, eq, inArray, isNull, or } from 'drizzle-orm';
 import { alias } from 'drizzle-orm/pg-core';
 import { db, dbTx } from '@/db';
-import { assetClasses, assetMeters, assetUsageLogs, assets, locations, meterReadings, meters, responsibles, sites, uoms } from '@/db/schema';
+import { assetClasses, assetMeters, assetUsageLogs, assets, bitacoraDestinos, locations, meterReadings, meters, responsibles, sites, uoms } from '@/db/schema';
 import { requirePermission, scopeDescriptor } from '@/lib/permissions';
 import { getCurrentTenant } from '@/lib/tenant';
 import { requireModulo } from '@/lib/tenant/modules';
@@ -272,6 +272,9 @@ export type OpcionesBitacora = {
   assets: { value: string; label: string; tipoLectura: TipoLecturaMedidor | null; simboloUom: string | null }[];
   responsables: { value: string; label: string }[];
   sites: { value: string; label: string }[];
+  destinosFrecuentes: { value: string; label: string }[];
+  /** Id en `responsibles` vinculado al usuario que inició sesión (columna `userId`), si existe. */
+  miResponsableId: string | null;
 };
 
 export async function obtenerOpcionesBitacora(): Promise<OpcionesBitacora> {
@@ -286,7 +289,7 @@ export async function obtenerOpcionesBitacora(): Promise<OpcionesBitacora> {
   // El Chofer (GUARDIA) solo debe ver camiones (§ solo lo necesario): igual que assertClaseCamion.
   const restriccionClase = session.user.roles.includes('GUARDIA') ? eq(assetClasses.codigo, 'CAMION') : undefined;
 
-  const [ast, medidores, resp, sedes] = await Promise.all([
+  const [ast, medidores, resp, sedes, destinos, miResponsable] = await Promise.all([
     db
       .select({ value: assets.id, label: assets.nombre, codigo: assets.codigo })
       .from(assets)
@@ -301,6 +304,16 @@ export async function obtenerOpcionesBitacora(): Promise<OpcionesBitacora> {
       .where(and(eq(responsibles.tenantId, tenant.id), eq(responsibles.activo, true), isNull(responsibles.deletedAt)))
       .orderBy(responsibles.nombre),
     db.select({ value: sites.id, label: sites.nombre }).from(sites).where(and(eq(sites.tenantId, tenant.id), eq(sites.activo, true), isNull(sites.deletedAt))).orderBy(sites.nombre),
+    db
+      .select({ value: bitacoraDestinos.id, label: bitacoraDestinos.nombre })
+      .from(bitacoraDestinos)
+      .where(and(eq(bitacoraDestinos.tenantId, tenant.id), eq(bitacoraDestinos.activo, true), isNull(bitacoraDestinos.deletedAt)))
+      .orderBy(bitacoraDestinos.nombre),
+    db
+      .select({ id: responsibles.id })
+      .from(responsibles)
+      .where(and(eq(responsibles.tenantId, tenant.id), eq(responsibles.userId, session.user.id), isNull(responsibles.deletedAt)))
+      .limit(1),
   ]);
 
   const assetsConMedidor = ast.map((a) => {
@@ -308,7 +321,7 @@ export async function obtenerOpcionesBitacora(): Promise<OpcionesBitacora> {
     return { value: a.value, label: `${a.codigo} — ${a.label}`, tipoLectura: m?.tipoLectura ?? null, simboloUom: m?.simboloUom ?? null };
   });
 
-  return { assets: assetsConMedidor, responsables: resp, sites: sedes };
+  return { assets: assetsConMedidor, responsables: resp, sites: sedes, destinosFrecuentes: destinos, miResponsableId: miResponsable[0]?.id ?? null };
 }
 
 const origenSites = alias(sites, 'origen_sites');

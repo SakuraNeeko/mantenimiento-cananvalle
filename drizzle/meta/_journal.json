@@ -141,6 +141,13 @@
       "when": 1786754450328,
       "tag": "0019_new_karen_page",
       "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1786999969335,
+      "tag": "0020_dizzy_zodiak",
+      "breakpoints": true
     }
   ]
 }

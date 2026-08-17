@@ -6,7 +6,15 @@ import { SalidaForm } from '../salida-form';
 import { registrarSalida, type OpcionesBitacora } from '../actions';
 import type { SalidaFormValues } from '@/lib/validators/bitacora';
 
-export function NuevaBitacoraClient({ opciones, assetIdInicial }: { opciones: OpcionesBitacora; assetIdInicial?: string }) {
+export function NuevaBitacoraClient({
+  opciones,
+  assetIdInicial,
+  bloquearResponsable,
+}: {
+  opciones: OpcionesBitacora;
+  assetIdInicial?: string;
+  bloquearResponsable?: boolean;
+}) {
   const router = useRouter();
 
   async function guardar(valores: SalidaFormValues, formData: FormData) {
@@ -19,5 +27,5 @@ export function NuevaBitacoraClient({ opciones, assetIdInicial }: { opciones: Op
     router.push(`/bitacora-uso/${resultado.id}`);
   }
 
-  return <SalidaForm opciones={opciones} assetIdInicial={assetIdInicial} onGuardado={guardar} />;
+  return <SalidaForm opciones={opciones} assetIdInicial={assetIdInicial} bloquearResponsable={bloquearResponsable} onGuardado={guardar} />;
 }

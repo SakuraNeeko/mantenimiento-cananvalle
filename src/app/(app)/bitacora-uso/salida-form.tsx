@@ -35,18 +35,29 @@ export function SalidaForm({
   opciones,
   assetIdInicial,
   textoBoton = 'Registrar salida',
+  bloquearResponsable = false,
   onGuardado,
 }: {
   opciones: OpcionesBitacora;
   assetIdInicial?: string;
   textoBoton?: string;
+  /** Chofer (GUARDIA): el responsable siempre es él mismo, sin selector — ver `miResponsableId`. */
+  bloquearResponsable?: boolean;
   onGuardado: (valores: SalidaFormValues, formData: FormData) => Promise<void> | void;
 }) {
   const [foto, setFoto] = React.useState<File | null>(null);
+  const responsablePropio = bloquearResponsable ? opciones.responsables.find((r) => r.value === opciones.miResponsableId) : undefined;
+  const [destinoSeleccion, setDestinoSeleccion] = React.useState('');
 
   const form = useForm<SalidaFormValues>({
     resolver: zodResolver(formSchema),
-    defaultValues: { assetId: assetIdInicial ?? '', responsableId: '', origenSiteId: '', destino: '', proposito: '' },
+    defaultValues: {
+      assetId: assetIdInicial ?? '',
+      responsableId: responsablePropio?.value ?? '',
+      origenSiteId: '',
+      destino: '',
+      proposito: '',
+    },
   });
 
   const assetSeleccionado = opciones.assets.find((a) => a.value === form.watch('assetId'));
@@ -80,18 +91,22 @@ export function SalidaForm({
             </div>
             <div className="space-y-1">
               <Label>Responsable</Label>
-              <Select value={form.watch('responsableId')} onValueChange={(v) => form.setValue('responsableId', v)}>
-                <SelectTrigger aria-invalid={Boolean(form.formState.errors.responsableId)}>
-                  <SelectValue placeholder="Selecciona…" />
-                </SelectTrigger>
-                <SelectContent>
-                  {opciones.responsables.map((o) => (
-                    <SelectItem key={o.value} value={o.value}>
-                      {o.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              {responsablePropio ? (
+                <p className="flex h-8 items-center rounded-[6px] border border-input bg-muted px-2.5 text-sm">{responsablePropio.label}</p>
+              ) : (
+                <Select value={form.watch('responsableId')} onValueChange={(v) => form.setValue('responsableId', v)}>
+                  <SelectTrigger aria-invalid={Boolean(form.formState.errors.responsableId)}>
+                    <SelectValue placeholder="Selecciona…" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {opciones.responsables.map((o) => (
+                      <SelectItem key={o.value} value={o.value}>
+                        {o.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
             </div>
             <div className="space-y-1">
               <Label>Lugar de origen</Label>
@@ -111,10 +126,20 @@ export function SalidaForm({
             <div className="space-y-1">
               <Label>Destino</Label>
               <Select
-                value={form.watch('destino')}
+                value={destinoSeleccion}
                 onValueChange={(v) => {
-                  form.setValue('destino', v);
-                  if (v !== DESTINO_OTRO) form.setValue('destinoOtro', '');
+                  setDestinoSeleccion(v);
+                  const frecuente = opciones.destinosFrecuentes.find((d) => d.value === v);
+                  if (frecuente) {
+                    form.setValue('destino', DESTINO_OTRO);
+                    form.setValue('destinoOtro', frecuente.label);
+                  } else if (v === DESTINO_OTRO) {
+                    form.setValue('destino', DESTINO_OTRO);
+                    form.setValue('destinoOtro', '');
+                  } else {
+                    form.setValue('destino', v);
+                    form.setValue('destinoOtro', '');
+                  }
                 }}
               >
                 <SelectTrigger aria-invalid={Boolean(form.formState.errors.destino)}>
@@ -126,7 +151,12 @@ export function SalidaForm({
                       {o.label}
                     </SelectItem>
                   ))}
-                  <SelectItem value={DESTINO_OTRO}>Otro</SelectItem>
+                  {opciones.destinosFrecuentes.map((o) => (
+                    <SelectItem key={o.value} value={o.value}>
+                      {o.label}
+                    </SelectItem>
+                  ))}
+                  <SelectItem value={DESTINO_OTRO}>Otro (especificar)</SelectItem>
                 </SelectContent>
               </Select>
             </div>

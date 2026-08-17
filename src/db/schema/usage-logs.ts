@@ -1,9 +1,26 @@
-import { index, numeric, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core';
+import { sql } from 'drizzle-orm';
+import { index, numeric, pgTable, text, timestamp, uniqueIndex, uuid } from 'drizzle-orm/pg-core';
 import { auditColumns } from './_shared';
 import { usageLogEstadoEnum } from './enums';
 import { sites, tenants } from './core';
-import { responsibles } from './infra';
+import { catalogColumns, responsibles } from './infra';
 import { assets } from './assets';
+
+/**
+ * Destinos frecuentes de la Bitácora de uso (ej. "Taller mecánico X", "Banco"):
+ * lista curada por un admin/gerente (vía el catálogo genérico de Infraestructura)
+ * que alimenta el selector de Destino del chofer como atajo — al elegir uno se
+ * guarda igual que "Otro" (texto libre en `destinoOtro`), sin requerir una FK
+ * propia ni tocar la lógica de alcance por sede que sí aplica a `sites`.
+ */
+export const bitacoraDestinos = pgTable(
+  'bitacora_destinos',
+  { ...catalogColumns },
+  (t) => [
+    uniqueIndex('bitacora_destinos_codigo_uq').on(t.tenantId, t.codigo).where(sql`deleted_at IS NULL`),
+    index('bitacora_destinos_tenant_idx').on(t.tenantId),
+  ],
+);
 
 /**
  * Módulo BITÁCORA DE USO (opcional) — control de quién usa un vehículo o
