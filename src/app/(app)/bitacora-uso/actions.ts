@@ -75,7 +75,8 @@ async function subirFoto(prefix: string, formData: FormData): Promise<{ ok: true
     return { ok: true, url: blob.url };
   } catch (error) {
     console.error('[bitacora] subirFoto', error);
-    return { ok: false, error: 'No se pudo subir la foto. Verifica que BLOB_READ_WRITE_TOKEN esté configurado.' };
+    const mensaje = error instanceof Error ? error.message : String(error);
+    return { ok: false, error: `No se pudo subir la foto (${mensaje}). Revisa la consola del servidor para más detalle.` };
   }
 }
 
