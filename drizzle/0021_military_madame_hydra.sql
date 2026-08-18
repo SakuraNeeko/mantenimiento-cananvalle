@@ -1,0 +1,1 @@
+ALTER TABLE "asset_usage_logs" ADD COLUMN "llegada_otro" text;

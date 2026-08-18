@@ -15,6 +15,7 @@ export type BitacoraRow = {
   destinoNombre: string | null;
   destinoOtro: string | null;
   llegadaNombre: string | null;
+  llegadaOtro: string | null;
   proposito: string;
   estado: string;
   fechaSalida: Date;
@@ -49,7 +50,7 @@ export const bitacoraColumns: ColumnDef<BitacoraRow, unknown>[] = [
     accessorKey: 'llegadaNombre',
     header: 'Llegada',
     meta: { label: 'Llegada', tipo: 'texto', ocultaPorDefecto: true } satisfies ColumnMeta,
-    cell: ({ row }) => row.original.llegadaNombre ?? <span className="text-muted-foreground">—</span>,
+    cell: ({ row }) => row.original.llegadaNombre ?? row.original.llegadaOtro ?? <span className="text-muted-foreground">—</span>,
   },
   {
     accessorKey: 'proposito',

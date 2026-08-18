@@ -47,8 +47,9 @@ export const assetUsageLogs = pgTable(
     /** Uno de los dos: una sede real, o `destinoOtro` cuando el destino no es ninguna finca del sistema. */
     destinoSiteId: uuid('destino_site_id').references(() => sites.id, { onDelete: 'set null' }),
     destinoOtro: text('destino_otro'),
-    /** A qué finca llegó al cerrar el uso — siempre una de las fincas del sistema (no admite "otro" como el destino de salida). */
+    /** Mismo criterio que destino: una sede real, o `llegadaOtro` cuando el lugar de llegada no es ninguna finca del sistema. */
     llegadaSiteId: uuid('llegada_site_id').references(() => sites.id, { onDelete: 'set null' }),
+    llegadaOtro: text('llegada_otro'),
     proposito: text('proposito').notNull(),
     estado: usageLogEstadoEnum('estado').notNull().default('ABIERTO'),
     fechaSalida: timestamp('fecha_salida', { withTimezone: true }).notNull().defaultNow(),

@@ -37,10 +37,16 @@ export const salidaBaseSchema = z
 
 export type SalidaFormValues = z.infer<typeof salidaBaseSchema>;
 
-export const regresoBaseSchema = z.object({
-  llegadaSiteId: z.string().trim().min(1, 'Selecciona la finca de llegada.'),
-  lecturaRegreso: campoOpcional,
-  observaciones: campoOpcional,
-});
+export const regresoBaseSchema = z
+  .object({
+    llegadaSiteId: z.string().trim().min(1, 'Selecciona la finca de llegada.'),
+    llegadaOtro: campoOpcional,
+    lecturaRegreso: campoOpcional,
+    observaciones: campoOpcional,
+  })
+  .refine((v) => v.llegadaSiteId !== DESTINO_OTRO || Boolean(v.llegadaOtro), {
+    message: 'Especifica dónde llegó.',
+    path: ['llegadaOtro'],
+  });
 
 export type RegresoFormValues = z.infer<typeof regresoBaseSchema>;

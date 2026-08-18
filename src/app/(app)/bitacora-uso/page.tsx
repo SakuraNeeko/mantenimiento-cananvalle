@@ -74,6 +74,7 @@ export default async function BitacoraUsoPage({ searchParams }: { searchParams: 
         destinoNombre: destinoSites.nombre,
         destinoOtro: assetUsageLogs.destinoOtro,
         llegadaNombre: llegadaSites.nombre,
+        llegadaOtro: assetUsageLogs.llegadaOtro,
         proposito: assetUsageLogs.proposito,
         estado: assetUsageLogs.estado,
         fechaSalida: assetUsageLogs.fechaSalida,

@@ -14,7 +14,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
 import { fmtDateTime } from '@/lib/datetime';
-import { ESTADO_LABELS, ESTADO_VARIANT } from '@/lib/validators/bitacora';
+import { DESTINO_OTRO, ESTADO_LABELS, ESTADO_VARIANT } from '@/lib/validators/bitacora';
 import { registrarRegreso } from '../actions';
 
 type Bitacora = {
@@ -27,6 +27,7 @@ type Bitacora = {
   destinoNombre: string | null;
   destinoOtro: string | null;
   llegadaNombre: string | null;
+  llegadaOtro: string | null;
   proposito: string;
   estado: string;
   fechaSalida: Date;
@@ -41,20 +42,40 @@ type Bitacora = {
 export function BitacoraDetalleClient({
   bitacora,
   sites,
+  destinosFrecuentes,
   puedeRegistrar,
 }: {
   bitacora: Bitacora;
   sites: { value: string; label: string }[];
+  destinosFrecuentes: { value: string; label: string }[];
   puedeRegistrar: boolean;
 }) {
   const router = useRouter();
   const [dialogAbierto, setDialogAbierto] = React.useState(false);
   const [procesando, setProcesando] = React.useState(false);
+  const [llegadaSeleccion, setLlegadaSeleccion] = React.useState('');
   const [llegadaSiteId, setLlegadaSiteId] = React.useState('');
+  const [llegadaOtro, setLlegadaOtro] = React.useState('');
   const [errorLlegada, setErrorLlegada] = React.useState(false);
   const [lecturaRegreso, setLecturaRegreso] = React.useState('');
   const [observaciones, setObservaciones] = React.useState('');
   const [foto, setFoto] = React.useState<File | null>(null);
+
+  function elegirLlegada(v: string) {
+    setLlegadaSeleccion(v);
+    setErrorLlegada(false);
+    const frecuente = destinosFrecuentes.find((d) => d.value === v);
+    if (frecuente) {
+      setLlegadaSiteId(DESTINO_OTRO);
+      setLlegadaOtro(frecuente.label);
+    } else if (v === DESTINO_OTRO) {
+      setLlegadaSiteId(DESTINO_OTRO);
+      setLlegadaOtro('');
+    } else {
+      setLlegadaSiteId(v);
+      setLlegadaOtro('');
+    }
+  }
 
   async function confirmarRegreso() {
     if (!llegadaSiteId) {
@@ -64,7 +85,11 @@ export function BitacoraDetalleClient({
     setProcesando(true);
     const formData = new FormData();
     if (foto) formData.append('foto', foto);
-    const resultado = await registrarRegreso(bitacora.id, { llegadaSiteId, lecturaRegreso: lecturaRegreso || undefined, observaciones: observaciones || undefined }, formData);
+    const resultado = await registrarRegreso(
+      bitacora.id,
+      { llegadaSiteId, llegadaOtro: llegadaOtro || undefined, lecturaRegreso: lecturaRegreso || undefined, observaciones: observaciones || undefined },
+      formData,
+    );
     setProcesando(false);
     if (!resultado.ok) {
       toast.error(resultado.error);
@@ -116,10 +141,10 @@ export function BitacoraDetalleClient({
                 <p>{fmtDateTime(bitacora.fechaRegreso)}</p>
               </div>
             ) : null}
-            {bitacora.llegadaNombre ? (
+            {(bitacora.llegadaNombre ?? bitacora.llegadaOtro) ? (
               <div>
                 <p className="text-2xs text-muted-foreground">Llegada a</p>
-                <p>{bitacora.llegadaNombre}</p>
+                <p>{bitacora.llegadaNombre ?? bitacora.llegadaOtro}</p>
               </div>
             ) : null}
             {bitacora.lecturaRegreso ? (
@@ -172,15 +197,9 @@ export function BitacoraDetalleClient({
           <div className="space-y-3">
             <div className="space-y-1">
               <Label>Llegada a</Label>
-              <Select
-                value={llegadaSiteId}
-                onValueChange={(v) => {
-                  setLlegadaSiteId(v);
-                  setErrorLlegada(false);
-                }}
-              >
+              <Select value={llegadaSeleccion} onValueChange={elegirLlegada}>
                 <SelectTrigger aria-invalid={errorLlegada}>
-                  <SelectValue placeholder="Selecciona la finca…" />
+                  <SelectValue placeholder="Selecciona…" />
                 </SelectTrigger>
                 <SelectContent>
                   {sites.map((o) => (
@@ -188,10 +207,22 @@ export function BitacoraDetalleClient({
                       {o.label}
                     </SelectItem>
                   ))}
+                  {destinosFrecuentes.map((o) => (
+                    <SelectItem key={o.value} value={o.value}>
+                      {o.label}
+                    </SelectItem>
+                  ))}
+                  <SelectItem value={DESTINO_OTRO}>Otro (especificar)</SelectItem>
                 </SelectContent>
               </Select>
-              {errorLlegada ? <p className="text-2xs text-destructive">Selecciona la finca de llegada.</p> : null}
+              {errorLlegada ? <p className="text-2xs text-destructive">Selecciona dónde llegó.</p> : null}
             </div>
+            {llegadaSiteId === DESTINO_OTRO ? (
+              <div className="space-y-1">
+                <Label htmlFor="llegadaOtro">Especifique</Label>
+                <Input id="llegadaOtro" value={llegadaOtro} onChange={(e) => setLlegadaOtro(e.target.value)} placeholder="¿A dónde llegó?" />
+              </div>
+            ) : null}
             <div className="space-y-1">
               <Label>Kilometraje</Label>
               <Input value={lecturaRegreso} onChange={(e) => setLecturaRegreso(e.target.value)} placeholder="Opcional" />

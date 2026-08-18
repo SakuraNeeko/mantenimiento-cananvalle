@@ -28,12 +28,13 @@ export default async function BitacoraDetallePage({ params }: { params: Promise<
   }
 
   const puedeRegistrar = hasPermission(session, 'bitacora.registrar');
-  const opciones = puedeRegistrar ? await obtenerOpcionesBitacora().catch(() => ({ assets: [], responsables: [], sites: [] })) : { assets: [], responsables: [], sites: [] };
+  const opcionesVacias = { assets: [], responsables: [], sites: [], destinosFrecuentes: [], miResponsableId: null };
+  const opciones = puedeRegistrar ? await obtenerOpcionesBitacora().catch(() => opcionesVacias) : opcionesVacias;
 
   return (
     <div className="mx-auto max-w-3xl space-y-3">
       <PageHeader titulo={`${bitacora.assetCodigo} — ${bitacora.assetNombre}`} descripcion={bitacora.proposito} />
-      <BitacoraDetalleClient bitacora={bitacora} sites={opciones.sites} puedeRegistrar={puedeRegistrar} />
+      <BitacoraDetalleClient bitacora={bitacora} sites={opciones.sites} destinosFrecuentes={opciones.destinosFrecuentes} puedeRegistrar={puedeRegistrar} />
     </div>
   );
 }

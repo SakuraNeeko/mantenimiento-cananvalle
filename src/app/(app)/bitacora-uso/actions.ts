@@ -184,7 +184,8 @@ export async function registrarRegreso(id: string, input: RegresoFormValues, for
   if (!registro) return { ok: false, error: 'El registro ya no existe.' };
   if (registro.estado !== 'ABIERTO') return { ok: false, error: 'Este uso ya fue cerrado.' };
 
-  if (!(await validarSite(tenant.id, parsed.data.llegadaSiteId))) return { ok: false, error: 'La finca de llegada no es válida.' };
+  const llegadaEsOtro = parsed.data.llegadaSiteId === DESTINO_OTRO;
+  if (!llegadaEsOtro && !(await validarSite(tenant.id, parsed.data.llegadaSiteId))) return { ok: false, error: 'La finca de llegada no es válida.' };
 
   const errorAcceso = await assertAccesoActivo(session, registro.assetId);
   if (errorAcceso) return { ok: false, error: errorAcceso };
@@ -203,7 +204,8 @@ export async function registrarRegreso(id: string, input: RegresoFormValues, for
       .set({
         estado: 'CERRADO',
         fechaRegreso: new Date(),
-        llegadaSiteId: parsed.data.llegadaSiteId,
+        llegadaSiteId: llegadaEsOtro ? null : parsed.data.llegadaSiteId,
+        llegadaOtro: llegadaEsOtro ? (parsed.data.llegadaOtro ?? null) : null,
         lecturaRegreso: parsed.data.lecturaRegreso ?? null,
         fotoRegresoUrl: foto.url,
         observaciones: parsed.data.observaciones ?? registro.observaciones,
@@ -344,6 +346,7 @@ export async function obtenerBitacoraDetalle(id: string) {
       destinoNombre: destinoSites.nombre,
       destinoOtro: assetUsageLogs.destinoOtro,
       llegadaNombre: llegadaSites.nombre,
+      llegadaOtro: assetUsageLogs.llegadaOtro,
       proposito: assetUsageLogs.proposito,
       estado: assetUsageLogs.estado,
       fechaSalida: assetUsageLogs.fechaSalida,
